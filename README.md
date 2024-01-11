@@ -27,7 +27,8 @@ Loans:
 Register and Login:
 {
     "Username": "1",
-    "Password": "1"
+    "Password": "1",
+    "is_admin": True
 }
 
 Get access token after logging in and put it in Auth/Header in Thunder Client:

@@ -1,7 +1,7 @@
 <!-- index.html -->
 
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -76,7 +76,7 @@
     <div class="row justify-content-center">
         <div class="card col-md-5">
             <div class="card-header" id="addBookSection">
-                <h3>Add Book</h3>
+                <h3>Add or Edit a Book</h3>
             </div>
             <div class="card-body">
                 <form id="addBookForm">
@@ -101,7 +101,7 @@
                         </select>
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addBook()">Add Book</button>
-                    <button type="button" class="btn btn-primary" onclick="editBookForm()">Edit Book</button>
+                    <button type="button" class="btn btn-primary" onclick="editBookForm()">Save Edited Book</button>
                     <button type="button" class="btn btn-warning" onclick="clearFields()">Clear Fields</button>
 
                 </form>
@@ -150,6 +150,10 @@
                     books.forEach(function (book) {
                         const li = document.createElement('li');
                         li.textContent = `${book.Name} by ${book.Author} (${book.YearPublished})`;
+                        const buttonsContainer = document.createElement('div');
+                        buttonsContainer.style.float = 'right'; // This will align the buttons to the right
+                        buttonsContainer.style.textAlign = 'right'; // This will align the buttons to the right
+
 
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Delete';
@@ -159,7 +163,7 @@
                         deleteButton.onclick = function () {
                             deleteBook(book.Id);
                         };
-                        li.appendChild(deleteButton);
+                        buttonsContainer.appendChild(deleteButton);
 
                         const editButton = document.createElement('button');
                         editButton.textContent = 'Edit';
@@ -168,7 +172,8 @@
                         editButton.onclick = function () {
                             editBookFields(book);
                         };
-                        li.appendChild(editButton);
+                        buttonsContainer.appendChild(editButton);
+                        li.appendChild(buttonsContainer);
 
                         ul.appendChild(li);
 
@@ -190,7 +195,7 @@
                 });
         }
 
-        //
+
         // Call the function to check if the user is logged in to have access to the rest of the page
         checkLogin()
 
@@ -210,7 +215,20 @@
                     checkLogin();
                 })
                 .catch(error => {
-                    console.error('Error adding book:', error);
+                    // If the request returns a 403, redirect to login.html
+                    if (error.response && error.response.status === 403) {
+                        Toastify({
+                            text: 'You need to be an admin to add books.',
+                            gravity: "top",
+                            position: "center",
+                            duration: 5000,
+                            style: {
+                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                            },
+                        }).showToast();
+                    } else {
+                        console.error('Error checking login status:', error);
+                    }
                 });
 
         }

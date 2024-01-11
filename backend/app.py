@@ -55,6 +55,7 @@ class User(db.Model):
     Id = db.Column(db.Integer, primary_key=True)
     Username = db.Column(db.String(50), unique=True, nullable=False)
     Password = db.Column(db.Text, nullable=False)
+    is_admin = db.Column(db.BOOLEAN, nullable=False)
 
 # ==============================================
 
@@ -89,7 +90,7 @@ class UserRegistrationResource(Resource):
         # Hash the password
         hashed_password = bcrypt.generate_password_hash(data['Password']).decode('utf-8')
 
-        new_user = User(Username=data['Username'], Password=hashed_password)
+        new_user = User(Username=data['Username'], Password=hashed_password, is_admin=False)
         db.session.add(new_user)
         db.session.commit()
         ic(data['Username'], "registered successfully") # IC logging to logger.txt
@@ -131,6 +132,10 @@ def token_expired_callback():
     current_user = get_jwt_identity()
     return jsonify(message="Token has expired"), 401
 
+def is_admin(current_user):
+    user = User.query.get(current_user)
+    return user.is_admin
+
 # =====================================
 
 
@@ -165,6 +170,8 @@ class BookResource(Resource):
     @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can add books'}, 403
         data = book_parser.parse_args()
         # Validate the book type (restricted to 1, 2, and 3)
         if data['Type'] not in {1, 2, 3}:
