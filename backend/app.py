@@ -38,6 +38,7 @@ class Customer(db.Model):
     City = db.Column(db.String(50))
     Age = db.Column(db.Integer)
 
+
 # Loan Model
 class Loan(db.Model):
     __tablename__ = 'Loans'
@@ -46,6 +47,9 @@ class Loan(db.Model):
     BookID = db.Column(db.Integer, db.ForeignKey('Books.Id'))
     Loandate = db.Column(db.Date)
     Returndate = db.Column(db.Date)
+
+
+
 
 # =====
 
@@ -56,6 +60,7 @@ class User(db.Model):
     Username = db.Column(db.String(50), unique=True, nullable=False)
     Password = db.Column(db.Text, nullable=False)
     is_admin = db.Column(db.BOOLEAN, nullable=False)
+    CustomerID = db.Column(db.Integer, db.ForeignKey('Customers.Id'))
 
 # ==============================================
 
@@ -74,23 +79,30 @@ def serve_frontend(filename):
 # =============== Login ================
 
 # Request parser for handling incoming JSON data
-user_parser = reqparse.RequestParser()
-user_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
-user_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+register_parser = reqparse.RequestParser()
+register_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
+register_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+register_parser.add_argument('Name', type=str, required=True, help='Name cannot be blank')
+register_parser.add_argument('City', type=str, required=True, help='City cannot be blank')
+register_parser.add_argument('Age', type=int, required=True, help='Age cannot be blank')
 
 # User Registration
 class UserRegistrationResource(Resource):
     def post(self):
-        data = user_parser.parse_args()
+        data = register_parser.parse_args()
 
         # Check if the username is already taken
         if User.query.filter_by(Username=data['Username']).first():
             return {'message': 'Username already taken'}, 400
-
+        
         # Hash the password
         hashed_password = bcrypt.generate_password_hash(data['Password']).decode('utf-8')
 
-        new_user = User(Username=data['Username'], Password=hashed_password, is_admin=False)
+        new_customer = Customer(Name=data['Name'], City=data['City'], Age=data['Age'])
+        db.session.add(new_customer)
+        db.session.commit()
+
+        new_user = User(Username=data['Username'], Password=hashed_password, is_admin=False, CustomerID=new_customer.Id)
         db.session.add(new_user)
         db.session.commit()
         ic(data['Username'], "registered successfully") # IC logging to logger.txt
@@ -102,29 +114,80 @@ api.add_resource(UserRegistrationResource, '/register')
 
 # =====
 
+# Request parser for handling incoming JSON data
+login_parser = reqparse.RequestParser()
+login_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
+login_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
 # User Login
 class UserLoginResource(Resource):
     def post(self):
-        data = user_parser.parse_args()
+        data = login_parser.parse_args()
 
         if not data['Username'] or not data['Password']:
             return {'message': 'Username and password are required'}, 400
 
         user = User.query.filter_by(Username=data['Username']).first()
+        customer = Customer.query.get(user.CustomerID)
+        if customer is not None:
+            customerName = customer.Name
+        else:
+            customerName = ''
 
         # Check if the user exists and the password is correct
         if user and bcrypt.check_password_hash(user.Password, data['Password']):
             # Create an access token
             access_token = create_access_token(identity=user.Id)
+            
             # Log user login using icecream
             ic(data['Username'], "logged in successfully") # IC logging to logger.txt
-            return {'access_token': access_token, 'message': 'Login successful'}
+            return {'access_token': access_token, 'message': 'Login successful', 'is_admin': user.is_admin, 'Name': customerName}
         return {'message': 'Invalid credentials'}, 401
 
 # Add UserLoginResource to the API
 api.add_resource(UserLoginResource, '/login')
 
 # =====
+
+# Request parser for handling incoming JSON data
+user_parser = reqparse.RequestParser()
+user_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
+user_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+user_parser.add_argument('is_admin', type=bool, required=True, help='is_admin cannot be blank')
+user_parser.add_argument('CustomerID', type=int, required=True, help='CustomerID cannot be blank')
+
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = get_jwt_identity()
+        user = User.query.get(current_user)
+        customer = Customer.query.get(user.CustomerID)
+        if customer is not None:
+            customerName = customer.Name
+        else:
+            customerName = ''
+        return {'Name': customerName}
+    
+    @jwt_required()
+    def put(self, user_id):
+        current_user = get_jwt_identity()
+        user = db.session.get(User, user_id)
+        
+        if user:
+            data = user_parser.parse_args()
+            hashed_password = bcrypt.generate_password_hash(data['Password']).decode('utf-8')
+
+            user.Username = data['Username']
+            user.Password = hashed_password
+            user.is_admin = data['is_admin']
+            user.CustomerID = data['CustomerID']
+            db.session.commit()
+            return {'message': 'user updated successfully'}
+        else:
+            return {'message': 'user not found'}, 404
+
+api.add_resource(UserResource, '/user','/user/<int:user_id>')
+
+
 
 # Handle token expiration
 @jwt_required()
@@ -184,6 +247,8 @@ class BookResource(Resource):
     @jwt_required()
     def put(self, book_id):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can add books'}, 403
         book = db.session.get(Book, book_id)
         if book:
             data = book_parser.parse_args()
@@ -202,6 +267,8 @@ class BookResource(Resource):
     @jwt_required()
     def delete(self, book_id):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can add books'}, 403
         book = db.session.get(Book, book_id)
         if book:
             db.session.delete(book)
@@ -438,11 +505,24 @@ class LoanResource(Resource):
             return {'message': 'Loan deleted successfully'}
         else:
             return {'message': 'Loan not found'}, 404
-
+        
 # Add LoanResource to the API
 api.add_resource(LoanResource, '/loans', '/loans/<int:loan_id>')
 
 # ======================================
+
+# User Loans by CustomerID
+class UserLoanResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = get_jwt_identity()
+        user = User.query.get(current_user)
+        loans = Loan.query.filter_by(CustomerID=user.CustomerID).all()
+        for loan in loans:
+            ic(loan.BookID) # IC logging to logger.txt
+        return loans
+
+api.add_resource(UserLoanResource, '/user/loans')
 
 
 

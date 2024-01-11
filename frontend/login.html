@@ -1,7 +1,7 @@
 <!-- login.html -->
 
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -87,6 +87,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+
             if (!username || !password) {
                 // Empty fields, show error message
                 Toastify({
@@ -105,13 +106,21 @@
             axios.post(`${MY_SERVER}/login`, { Username: username, Password: password })
                 .then(response => {
                     const accessToken = response.data.access_token;
-
+                    const isAdmin = response.data.is_admin;
+                    console.log(response.data);
                     // Save the access token in sessionStorage
                     sessionStorage.setItem('access_token', accessToken);
 
 
+
                     // Redirect to index.html
-                    window.location.href = 'index.html?login=true';
+                    if (isAdmin) {
+                        window.location.href = 'menu.html?login=true';
+                    }
+                    else {
+                        window.location.href = 'index.html?login=true';
+                    }
+
                 })
                 .catch(error => {
                     console.error('Login error:', error);

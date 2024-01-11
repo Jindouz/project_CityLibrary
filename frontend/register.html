@@ -77,6 +77,22 @@
                 <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
             </div>
 
+            <div class="mb-3">
+                <label for="Name" class="form-label">Name:</label>
+                <input type="text" id="Name" name="Name" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="City" class="form-label">City:</label>
+                <input type="text" id="City" name="City" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="Age" class="form-label">Age:</label>
+                <input type="text" id="Age" name="Age" class="form-control" required>
+            </div>
+
+
             <button type="button" class="btn btn-primary" onclick="register()">Register</button>
         </form>
 
@@ -91,8 +107,11 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const Name = document.getElementById('Name').value;
+            const City = document.getElementById('City').value;
+            const Age = document.getElementById('Age').value;
 
-            if (!username || !password || !confirmPassword) {
+            if (!username || !password || !confirmPassword || !Name || !City || !Age) {
                 // Empty fields, show error message
                 Toastify({
                     text: 'Please fill in all the required fields.',
@@ -120,7 +139,7 @@
                 return;
             }
             // Make a POST request to your register endpoint
-            axios.post(`${MY_SERVER}/register`, { Username: username, Password: password })
+            axios.post(`${MY_SERVER}/register`, { Username: username, Password: password, Name: Name, City: City, Age: Age })
                 .then(response => {
                     // Redirect to login.html
                     window.location.href = 'login.html?RegMessage=true';

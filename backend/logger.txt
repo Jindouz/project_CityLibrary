@@ -59,3 +59,40 @@ ic| data['Username']: '2', 'logged in successfully'
 11-01-2024 19:56:34 | ic| data['Username']: 'user1', 'logged in successfully'
 11-01-2024 20:05:42 | ic| data['Username']: '1', 'logged in successfully'
 11-01-2024 20:31:51 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 20:43:14 | ic| data['Username']: 'user1', 'logged in successfully'
+11-01-2024 20:43:34 | ic| data['Username']: 'user1', 'logged in successfully'
+11-01-2024 20:43:49 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 21:28:04 | ic| data['Username']: 'userwaga', 'registered successfully'
+11-01-2024 21:29:38 | ic| data['Username']: 'userwaga2', 'registered successfully'
+11-01-2024 21:30:01 | ic| data['Username']: 'userwaga3', 'registered successfully'
+11-01-2024 21:52:45 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 21:54:14 | ic| data['Username']: 'userwaga2', 'logged in successfully'
+11-01-2024 21:55:43 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 21:59:34 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 22:01:19 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 22:02:02 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 22:02:25 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 22:02:38 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 22:04:17 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 22:05:42 | ic| data['Username']: 'userwaga3', 'logged in successfully'
+11-01-2024 22:11:04 | ic| data['Username']: 'waga1', 'registered successfully'
+11-01-2024 22:11:10 | ic| data['Username']: 'waga1', 'logged in successfully'
+11-01-2024 22:53:10 | ic| data['Username']: '1', 'logged in successfully'
+11-01-2024 23:17:51 | ic| data['Username']: 'h22', 'logged in successfully'
+11-01-2024 23:58:39 | ic| data['Username']: '1', 'logged in successfully'
+12-01-2024 00:13:02 | ic| data['Username']: '1', 'logged in successfully'
+12-01-2024 00:18:59 | ic| loan: <Loan 3>
+12-01-2024 00:18:59 | ic| loan: <Loan 4>
+12-01-2024 00:18:59 | ic| loan: <Loan 5>
+12-01-2024 00:18:59 | ic| loan: <Loan 6>
+12-01-2024 00:18:59 | ic| loan: <Loan 7>
+12-01-2024 00:20:55 | ic| loan: <Loan 3>
+12-01-2024 00:20:55 | ic| loan: <Loan 4>
+12-01-2024 00:20:55 | ic| loan: <Loan 5>
+12-01-2024 00:20:55 | ic| loan: <Loan 6>
+12-01-2024 00:20:55 | ic| loan: <Loan 7>
+12-01-2024 00:23:38 | ic| loan.BookID: 3
+12-01-2024 00:23:38 | ic| loan.BookID: 1
+12-01-2024 00:23:38 | ic| loan.BookID: 10
+12-01-2024 00:23:38 | ic| loan.BookID: 9
+12-01-2024 00:23:38 | ic| loan.BookID: 8

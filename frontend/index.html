@@ -47,10 +47,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
 
-                    <!-- Register Button (Far Right) -->
-                    <li class="nav-item">
-                        <a class="btn btn-primary btn-sm" href="register.html" style="margin-right: 5px;">Register</a>
-                    </li>
+
 
                     <!-- Logout Button (Far Right) -->
                     <li class="nav-item">
@@ -64,10 +61,10 @@
 
 
 
-    <h3 class="mt-5">Authenticated! Welcome!</h3>
+    <h3 class="mt-5">Authenticated! Welcome <span id="displayname"></span>!</h3>
     <!-- <div class="card mt-4">
         <div class="card-header"> -->
-    <h3 class="mt-4" style="text-align: center;">Book Manager:</h3>
+    <h3 class="mt-4" style="text-align: center;">Customer Book Manager:</h3>
     </div>
 
     <div class="display"></div>
@@ -76,21 +73,13 @@
     <div class="row justify-content-center">
         <div class="card col-md-5">
             <div class="card-header" id="addBookSection">
-                <h3>Add or Edit a Book</h3>
+                <h3>Loan a Book</h3>
             </div>
             <div class="card-body">
                 <form id="addBookForm">
                     <div class="mb-3">
-                        <label for="name" class="form-label">Name:</label>
+                        <label for="name" class="form-label">Book:</label>
                         <input type="text" id="name" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="author" class="form-label">Author:</label>
-                        <input type="text" id="author" name="author" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="yearPublished" class="form-label">Year Published:</label>
-                        <input type="number" id="yearPublished" name="yearPublished" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label for="type" class="form-label">Loan Duration (Type):</label>
@@ -301,6 +290,26 @@
                     console.error('Error deleting book:', error);
                 });
         }
+
+
+
+        function getCurrentUser(){
+            const accessToken = sessionStorage.getItem('access_token');
+            axios.get(`${MY_SERVER}/user`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            .then(response => { 
+                console.log(response.data);
+                document.getElementById('displayname').innerHTML = response.data.Name;
+
+            })
+            .catch(error => {
+                console.error('Error checking login status:', error);
+            });
+
+        }
+
+getCurrentUser();
 
         const urlParams = new URLSearchParams(window.location.search);
         const loginMsg = urlParams.get('login');

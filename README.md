@@ -31,6 +31,15 @@ Register and Login:
     "is_admin": True
 }
 
+Registration of User + Customer:
+{
+    "Username": "userwaga",
+    "Password": "123",
+    "Name": "waga",
+    "City": "NYC",
+    "Age": 22
+}
+
 Get access token after logging in and put it in Auth/Header in Thunder Client:
 
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcwNDgxNjkzNSwianRpIjoiMmYzZjM1ZDMtOTE0Yi00N2I0LTlhNTUtNGFkOTNiN2IyZGZlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzA0ODE2OTM1LCJjc3JmIjoiMTMxZjQ5ZGMtYTY0OC00YzFjLWIyOTItNWE3N2ExMmI1YjBmIiwiZXhwIjoxNzA0ODE4NzM1fQ.wr-uAb_pHMv0wqTq1yeP3rJeeUY17ea5T7eGb4ZFfDY
