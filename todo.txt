@@ -1,0 +1,67 @@
+<!-- Scrollable modal -->
+<div class="modal-dialog modal-dialog-scrollable">
+  ...
+</div>
+
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+  Launch static backdrop modal
+</button>
+
+<!-- Modal -->
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Understood</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        # Execute the SQL command to change the data type
+        cursor.execute("PRAGMA foreign_keys=off;")
+        cursor.execute("BEGIN TRANSACTION;")
+        cursor.execute("CREATE TABLE Users_backup AS SELECT * FROM Users;")
+        cursor.execute("DROP TABLE Users;")
+        cursor.execute("CREATE TABLE Users (Id INTEGER PRIMARY KEY, Username VARCHAR(50) UNIQUE NOT NULL, Password TEXT NOT NULL,is_admin boolean);")
+        cursor.execute("INSERT INTO Users (Id, Username, Password, is_admin) SELECT Id, Username, Password, is_admin FROM Users_backup;")
+        cursor.execute("DROP TABLE Users_backup;")
+        cursor.execute("COMMIT;")
+
+two buttons
+my loans
+loan book
+
+2 fields
+
+2 cloumns
+name of book, return date
+
+edit customers+users table in admin
+
+f12 in vsc while highlighting a function = jumps to its creation
+
+git offline, git init>git add .>commit (then go to github desktop and add offline repository)
+
+
+
+
+user_parser = reqparse.RequestParser()
+user_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
+user_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+user_parser.add_argument('is_admin', type=bool, required=True, help='is_admin cannot be blank')
+user_parser.add_argument('CustomerID', type=int, required=False, help='CustomerID cannot be blank')
+
+

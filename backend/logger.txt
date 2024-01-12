@@ -96,3 +96,17 @@ ic| data['Username']: '2', 'logged in successfully'
 12-01-2024 00:23:38 | ic| loan.BookID: 10
 12-01-2024 00:23:38 | ic| loan.BookID: 9
 12-01-2024 00:23:38 | ic| loan.BookID: 8
+12-01-2024 09:16:03 | ic| data['Username']: '1', 'logged in successfully'
+12-01-2024 09:35:18 | ic| data['Username']: '3', 'logged in successfully'
+12-01-2024 09:42:54 | ic| data['Username']: 'userwaga', 'logged in successfully'
+12-01-2024 10:42:20 | ic| data['Username']: '2', 'logged in successfully'
+12-01-2024 10:46:29 | ic| data['Username']: 'admin', 'logged in successfully'
+12-01-2024 10:50:42 | ic| data['Username']: 'waga1', 'logged in successfully'
+12-01-2024 10:52:23 | ic| data['Username']: '2', 'logged in successfully'
+12-01-2024 10:56:02 | ic| data['Username']: 'user1', 'logged in successfully'
+12-01-2024 10:57:38 | ic| data['Username']: 'x123', 'registered successfully'
+12-01-2024 10:57:44 | ic| data['Username']: 'x123', 'logged in successfully'
+12-01-2024 10:59:44 | ic| data['Username']: '1', 'logged in successfully'
+12-01-2024 13:00:49 | ic| data['Username']: '1', 'logged in successfully'
+12-01-2024 13:07:15 | ic| current_user: 1, 'used Customers DELETE. Auth Token: OK'
+12-01-2024 13:07:37 | ic| current_user: 1, 'used Customers DELETE. Auth Token: OK'

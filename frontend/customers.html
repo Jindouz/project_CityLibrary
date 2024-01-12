@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night City Library</title>
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon2.png">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <style>
+        .navbar {
+            background-image: url('assets/icons/navbar.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 110px;
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-size: 24px;
+        }
+
+        .navbar-brand img {
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            color: white !important;
+            margin-right: 20px;
+            font-size: 18px;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        #adminButtons {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .card {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body class="container">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="menu.html">
+                <img src="assets/icons/home2.jpg" alt="Library Logo" width="120" height="100"
+                    class="d-inline-block align-text-top">
+            </a>
+            <h1 style="text-align: center; color: white;">Night City Library</h1>
+            <!-- Navbar Toggler (for smaller screens) -->
+            <button style="margin-top: 35px;" class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Items -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <div>
+                        <h5 style="margin-right: 20px;">Logged in as <span id="displayusername"></span>.</h5>
+                    </div>
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div style="display: flex; justify-content: right;">
+        <div class="mt-3" id="adminButtons" style="margin-right: 10px;"></div>
+    </div>
+
+    <h3 class="mt-4" style="text-align: center;">Customer Manager:</h3>
+    </div>
+
+    <div class="display"></div>
+    <br>
+    <!-- Add Customer Section -->
+    <div class="row justify-content-center">
+        <div class="card col-md-5">
+            <div class="card-header" id="addCustomerSection">
+                <h3>Add or Edit a Customer</h3>
+            </div>
+            <div class="card-body">
+                <form id="addCustomerForm">
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Customer Name:</label>
+                        <input type="text" id="customerName" name="customerName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerCity" class="form-label">Customer City:</label>
+                        <input type="City" id="customerCity" name="customerCity" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerAge" class="form-label">Customer Age:</label>
+                        <input type="tel" id="customerAge" name="customerAge" class="form-control" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addCustomer()">Add Customer</button>
+                    <button type="button" class="btn btn-primary" onclick="editCustomerForm()">Save Edited
+                        Customer</button>
+                    <button type="button" class="btn btn-warning" onclick="clearCustomerFields()">Clear Fields</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Customer List Section -->
+        <div class="card col-md-5">
+            <div class="card-header">
+                <h3>Customer List</h3>
+            </div>
+            <div class="card-body" id="customersDisplay"></div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        MY_SERVER = "http://127.0.0.1:5000";
+
+        // Global variable to store the selected customer ID
+        let selectedCustomerId;
+
+        // Function to fetch all customers
+        function fetchCustomers() {
+            const accessToken = sessionStorage.getItem('access_token');
+            axios.get(`${MY_SERVER}/customers`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    const customers = response.data.customers;
+                    const customersDiv = document.getElementById('customersDisplay');
+                    customersDiv.innerHTML = '';
+
+                    customers.forEach(function (customer) {
+                        // Create a Bootstrap card
+                        const card = document.createElement('div');
+                        card.className = 'card mb-3';
+
+                        // Card body
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body';
+
+                        // Customer info
+                        const customerInfo = document.createElement('p');
+                        customerInfo.className = 'card-text';
+                        customerInfo.innerHTML = `<strong>Name:</strong> ${customer.Name}, <strong>City:</strong> ${customer.City}, <strong>Age:</strong> ${customer.Age}, <strong>Username:</strong> ${customer.Username || 'N/A'}`;
+
+                        // Buttons container
+                        const buttonsContainer = document.createElement('div');
+                        buttonsContainer.className = 'd-flex justify-content-end';
+
+                        // Add delete button
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.className = 'btn btn-danger btn-sm me-2';
+                        deleteButton.onclick = function () {
+                            deleteCustomer(customer.Id);
+                        };
+                        buttonsContainer.appendChild(deleteButton);
+
+                        // Add edit button
+                        const editButton = document.createElement('button');
+                        editButton.textContent = 'Edit';
+                        editButton.className = 'btn btn-warning btn-sm';
+                        editButton.onclick = function () {
+                            editCustomerFields(customer);
+                        };
+                        buttonsContainer.appendChild(editButton);
+
+                        // Append elements
+                        cardBody.appendChild(customerInfo);
+                        cardBody.appendChild(buttonsContainer);
+                        card.appendChild(cardBody);
+
+                        // Append card to the customersDiv
+                        customersDiv.appendChild(card);
+
+                        // Create an <hr> element between cards
+                        const hr = document.createElement('hr');
+                        customersDiv.appendChild(hr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching customers:', error);
+                });
+        }
+
+        // Function to add a new customer
+        function addCustomer() {
+            const customerName = document.getElementById('customerName').value;
+            const customerCity = document.getElementById('customerCity').value;
+            const customerAge = document.getElementById('customerAge').value;
+            const accessToken = sessionStorage.getItem('access_token');
+
+            axios.post(`${MY_SERVER}/customers`, { Name: customerName, City: customerCity, Age: customerAge }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    console.log('Customer added successfully:', response.data);
+                    // Reload customers after adding a new one
+                    fetchCustomers();
+                })
+                .catch(error => {
+                    console.error('Error adding customer:', error);
+                });
+        }
+
+        // Function to handle the Edit Customer button
+        function editCustomerForm() {
+            const customerName = document.getElementById('customerName').value;
+            const customerCity = document.getElementById('customerCity').value;
+            const customerAge = document.getElementById('customerAge').value;
+            const accessToken = sessionStorage.getItem('access_token');
+
+            // Use the selectedCustomerId when sending the request
+            axios.put(`${MY_SERVER}/customers/${selectedCustomerId}`, {
+                Name: customerName,
+                City: customerCity,
+                Age: customerAge
+            }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    console.log('Customer updated successfully:', response.data);
+                    // Reload the customers after editing
+                    fetchCustomers();
+                })
+                .catch(error => {
+                    console.error('Error updating customer:', error);
+                });
+        }
+
+        // Function to populate form fields for editing
+        function editCustomerFields(customer) {
+            selectedCustomerId = customer.Id;
+            document.getElementById('customerName').value = customer.Name;
+            document.getElementById('customerCity').value = customer.City;
+            document.getElementById('customerAge').value = customer.Age;
+            // Scroll to the "Add Customer" section
+            const addCustomerSection = document.getElementById('addCustomerSection');
+            addCustomerSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Function to clear form fields
+        function clearCustomerFields() {
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerCity').value = '';
+            document.getElementById('customerAge').value = '';
+        }
+
+        // Function to delete a customer and related user
+        function deleteCustomer(customerId) {
+            const accessToken = sessionStorage.getItem('access_token');
+            // Display a confirmation dialog
+      
+            const isConfirmed = confirm(`Deleting this customer will also delete the associated user account. Are you sure?`);
+
+            if (isConfirmed) {
+                axios.delete(`${MY_SERVER}/customers/${customerId}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                })
+                    .then(response => {
+                        console.log('Customer and User deleted successfully:', response.data);
+                        // Reload the customers after deleting
+                        fetchCustomers();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting customer and user:', error);
+                    });
+            }
+        }
+        // Function to check if the user is logged in
+        function checkLogin() {
+            const accessToken = sessionStorage.getItem('access_token');
+
+            if (!accessToken) {
+                // Redirect to login.html if not logged in
+                window.location.href = 'login.html?loginMessage=true';
+            }
+
+            axios.get(`${MY_SERVER}/user`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    // User is authenticated, handle accordingly
+                    console.log('User is authenticated:', response.data);
+                })
+                .catch(error => {
+                    // If the request returns a 401, redirect to login.html
+                    if (error.response && error.response.status === 401) {
+                        window.location.href = 'login.html?loginMessage=true';
+                    } else {
+                        console.error('Error checking login status:', error);
+                    }
+                });
+        }
+
+        checkLogin();
+        fetchCustomers();
+
+        function logout() {
+            sessionStorage.removeItem('access_token');
+            window.location.href = 'login.html?logout=true';
+        }
+
+        function getCurrentUser() {
+            const accessToken = sessionStorage.getItem('access_token');
+            axios.get(`${MY_SERVER}/user`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    if (response.data.is_admin == true) {
+                        document.getElementById('displayusername').innerHTML = "Admin " + response.data.Username;
+
+                        const adminButton = document.createElement('a');
+                        adminButton.href = 'menu.html';
+                        adminButton.className = 'btn btn-success btn-sm';
+                        adminButton.innerHTML = 'Admin Menu';
+
+                        adminButtons.appendChild(adminButton);
+                    }
+                    else {
+                        document.getElementById('displayusername').innerHTML = response.data.Username;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking login status:', error);
+                });
+
+        }
+
+        getCurrentUser()
+
+    </script>
+</body>
+
+</html>

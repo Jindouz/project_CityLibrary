@@ -31,7 +31,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="menu.html" style="color: white;">
+            <a class="navbar-brand" href="index.html" style="color: white;">
                 <img src="assets/icons/home2.jpg" alt="Library Logo" width="120" height="100"
                     class="d-inline-block align-text-top">
 
@@ -45,7 +45,11 @@
 
             <!-- Navbar Items -->
             <div class="collapse navbar-collapse" id="navbarNav">
+
                 <ul class="navbar-nav ms-auto">
+                    <div>
+                        <h4 style="margin-right: 20px;">Logged in as <span id=displayusername></span>.</h4>
+                    </div>
 
                     <li class="nav-item">
                         <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
@@ -56,8 +60,9 @@
         </div>
     </nav>
     <div class="text-center">
-    <h3 class="mt-5">Welcome Admin <span id="displayname"></span>!</h3>
+        <h4 class="mt-5">Welcome <span id="displayname"></span>!</h4>
     </div>
+
 
     <br>
     <!-- Add Book Section -->
@@ -75,7 +80,7 @@
                     <br><br>
                     <a class="btn btn-primary" href="loans.html">Manage Loans (CRUD)</a>
                     <br><br><br>
-                    <a class="btn btn-primary" href="index.html">Users Main Page</a>
+                    <a class="btn btn-primary" href="index.html">Standard Users Main Page (Index)</a>
                 </div>
             </div>
         </div>
@@ -102,8 +107,8 @@
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
-                    // User is authenticated, handle accordingly
-                    console.log('User is authenticated:', response.data);
+                    // User is authenticated
+                    // console.log('User is authenticated:', response.data); debug log
                 })
                 .catch(error => {
                     // If the request returns a 401, redirect to login.html
@@ -126,15 +131,20 @@
         }
 
 
+        // Function to get the current user for a welcome message
         function getCurrentUser() {
             const accessToken = sessionStorage.getItem('access_token');
             axios.get(`${MY_SERVER}/user`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
-                    console.log(response.data);
                     document.getElementById('displayname').innerHTML = response.data.Name;
-
+                    if (response.data.is_admin == true) {
+                        document.getElementById('displayusername').innerHTML = "Admin " + response.data.Username;
+                    }
+                    else {
+                        document.getElementById('displayusername').innerHTML = response.data.Username;
+                    }
                 })
                 .catch(error => {
                     console.error('Error checking login status:', error);
@@ -142,6 +152,7 @@
 
         }
 
+        // Call the function to get the current user
         getCurrentUser();
 
         const urlParams = new URLSearchParams(window.location.search);

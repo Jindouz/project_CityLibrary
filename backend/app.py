@@ -148,45 +148,67 @@ api.add_resource(UserLoginResource, '/login')
 
 # =====
 
+# =============== Users ================
+
 # Request parser for handling incoming JSON data
 user_parser = reqparse.RequestParser()
-user_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
-user_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+user_parser.add_argument('Username', type=str, required=False)
+user_parser.add_argument('Password', type=str, required=False)
 user_parser.add_argument('is_admin', type=bool, required=True, help='is_admin cannot be blank')
-user_parser.add_argument('CustomerID', type=int, required=True, help='CustomerID cannot be blank')
+user_parser.add_argument('CustomerID', type=int, required=False)
 
 class UserResource(Resource):
     @jwt_required()
     def get(self):
         current_user = get_jwt_identity()
-        user = User.query.get(current_user)
-        customer = Customer.query.get(user.CustomerID)
+        user = db.session.get(User, current_user)
+        customer = db.session.get(Customer, user.CustomerID)
         if customer is not None:
             customerName = customer.Name
         else:
             customerName = ''
-        return {'Name': customerName}
+        return {'Name': customerName, 'Username': user.Username, 'is_admin': user.is_admin}
     
+    # updating users credentials and admin status
     @jwt_required()
     def put(self, user_id):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can edit users'}, 403
         user = db.session.get(User, user_id)
         
         if user:
             data = user_parser.parse_args()
-            hashed_password = bcrypt.generate_password_hash(data['Password']).decode('utf-8')
 
+            hashed_password = bcrypt.generate_password_hash(data['Password']).decode('utf-8')
             user.Username = data['Username']
             user.Password = hashed_password
+
             user.is_admin = data['is_admin']
-            user.CustomerID = data['CustomerID']
+            # user.CustomerID = data['CustomerID'] #being able to change customer ID for debug purposes
             db.session.commit()
             return {'message': 'user updated successfully'}
         else:
             return {'message': 'user not found'}, 404
+        
+    # deleting users
+    @jwt_required()
+    def delete(self, user_id):
+        current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can delete users'}, 403
+        user = db.session.get(User, user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return {'message': 'user deleted successfully'}
+        else:
+            return {'message': 'user not found'}, 404
+        
 
 api.add_resource(UserResource, '/user','/user/<int:user_id>')
 
+# =====================================
 
 
 # Handle token expiration
@@ -297,17 +319,33 @@ class CustomerResource(Resource):
     @jwt_required()
     def get(self, customer_id=None):
         current_user = get_jwt_identity()
+
         if customer_id:
-            customer = db.session.get(Customer, customer_id) # Get customer by ID
+            customer = db.session.get(Customer, customer_id)  # Get customer by ID
+
             if customer:
-                return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age}
+                user = User.query.filter_by(CustomerID=customer.Id).first()
+                username = user.Username if user else None
+                return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age, 'Username': username}
             else:
                 return {'message': 'Customer not found'}, 404
         else:
-            customers = Customer.query.all() # Get all customers
-            customers_data = [{'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age}
-                              for customer in customers]
+            customers = Customer.query.all()  # Get all customers
+            customers_data = []
+
+            for customer in customers:
+                user = User.query.filter_by(CustomerID=customer.Id).first()
+                username = user.Username if user else None
+                customers_data.append({
+                    'Id': customer.Id,
+                    'Name': customer.Name,
+                    'City': customer.City,
+                    'Age': customer.Age,
+                    'Username': username
+                })
+
             return {'customers': customers_data}
+        
 
     @jwt_required()
     def post(self):
@@ -332,14 +370,35 @@ class CustomerResource(Resource):
         else:
             return {'message': 'Customer not found'}, 404
 
+    # @jwt_required()
+    # def delete(self, customer_id):
+    #     current_user = get_jwt_identity()
+    #     customer = db.session.get(Customer, customer_id)
+    #     if customer:
+    #         db.session.delete(customer)
+    #         db.session.commit()
+    #         return {'message': 'Customer deleted successfully'}
+    #     else:
+    #         return {'message': 'Customer not found'}, 404
+        
     @jwt_required()
     def delete(self, customer_id):
         current_user = get_jwt_identity()
         customer = db.session.get(Customer, customer_id)
+
         if customer:
-            db.session.delete(customer)
+            # Get the related user
+            user = User.query.filter_by(CustomerID=customer.Id).first()
+
+            if user:
+                db.session.delete(user)  # Delete the related user
+                db.session.commit()
+
+            db.session.delete(customer)  # Delete the customer
             db.session.commit()
-            return {'message': 'Customer deleted successfully'}
+
+            ic(current_user, "used Customers DELETE. Auth Token: OK")  # IC logging to logger.txt
+            return {'message': 'Customer and User deleted successfully'}
         else:
             return {'message': 'Customer not found'}, 404
 
