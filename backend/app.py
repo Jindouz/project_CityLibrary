@@ -76,7 +76,7 @@ def landing_page():
 def serve_frontend(filename):
     return send_from_directory('../frontend', filename)
 
-# =============== Login ================
+# =============== Registeration and Login ================
 
 # Request parser for handling incoming JSON data
 register_parser = reqparse.RequestParser()
@@ -148,7 +148,7 @@ api.add_resource(UserLoginResource, '/login')
 
 # =====
 
-# =============== Users ================
+# =============== Extra Users Functions ================
 
 # Request parser for handling incoming JSON data
 user_parser = reqparse.RequestParser()
@@ -157,6 +157,7 @@ user_parser.add_argument('Password', type=str, required=False)
 user_parser.add_argument('is_admin', type=bool, required=True, help='is_admin cannot be blank')
 user_parser.add_argument('CustomerID', type=int, required=False)
 
+# Get specific User details for access check and messages (customername, username, is_admin)
 class UserResource(Resource):
     @jwt_required()
     def get(self):
@@ -169,7 +170,7 @@ class UserResource(Resource):
             customerName = ''
         return {'Name': customerName, 'Username': user.Username, 'is_admin': user.is_admin}
     
-    # updating users credentials and admin status
+    # updating users credentials and admin status (mainly for debug and promoting/demoting existing users as Admins via ThunderClient)
     @jwt_required()
     def put(self, user_id):
         current_user = get_jwt_identity()

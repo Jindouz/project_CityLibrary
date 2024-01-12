@@ -91,35 +91,84 @@
     <h3 class="mt-4" style="text-align: center;">Customer Manager:</h3>
     </div>
 
-    <div class="display"></div>
+
     <br>
-    <!-- Add Customer Section -->
+
     <div class="row justify-content-center">
         <div class="card col-md-5">
-            <div class="card-header" id="addCustomerSection">
-                <h3>Add or Edit a Customer</h3>
-            </div>
-            <div class="card-body">
-                <form id="addCustomerForm">
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label">Customer Name:</label>
-                        <input type="text" id="customerName" name="customerName" class="form-control" required>
+            <div class="card">
+                <div class="card-header" id="editCustomerSection">
+                    <h3>Edit a Customer</h3>
+                </div>
+                <div class="card-body">
+                    <form id="addCustomerForm">
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Customer Name:</label>
+                            <input type="text" id="customerName" name="customerName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerCity" class="form-label">Customer City:</label>
+                            <input type="City" id="customerCity" name="customerCity" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerAge" class="form-label">Customer Age:</label>
+                            <input type="tel" id="customerAge" name="customerAge" class="form-control" required>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="editCustomerForm()">Save Edited
+                            Customer</button>
+                        <button type="button" class="btn btn-warning" onclick="clearCustomerFields()">Clear
+                            Fields</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Register a new Customer</h3>
                     </div>
-                    <div class="mb-3">
-                        <label for="customerCity" class="form-label">Customer City:</label>
-                        <input type="City" id="customerCity" name="customerCity" class="form-control" required>
+                    <div class="card-body">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username:</label>
+                                <input type="text" id="username" name="username" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password:</label>
+                                <input type="password" id="password" name="password" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                                    required>
+                            </div>
+
+                            <!-- Additional registration form fields (Name, City, Age) -->
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">Name:</label>
+                                <input type="text" id="Name" name="Name" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="City" class="form-label">City:</label>
+                                <input type="text" id="City" name="City" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Age" class="form-label">Age:</label>
+                                <input type="text" id="Age" name="Age" class="form-control" required>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" onclick="register()">Register</button>
+                            <button type="button" class="btn btn-warning" onclick="clearRegFields()">Clear
+                                Fields</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="customerAge" class="form-label">Customer Age:</label>
-                        <input type="tel" id="customerAge" name="customerAge" class="form-control" required>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="addCustomer()">Add Customer</button>
-                    <button type="button" class="btn btn-primary" onclick="editCustomerForm()">Save Edited
-                        Customer</button>
-                    <button type="button" class="btn btn-warning" onclick="clearCustomerFields()">Clear Fields</button>
-                </form>
+                </div>
             </div>
         </div>
+
+
 
         <!-- Customer List Section -->
         <div class="card col-md-5">
@@ -145,6 +194,8 @@
             })
                 .then(response => {
                     const customers = response.data.customers;
+                    // Sort customers by Id in descending order
+                    customers.sort((a, b) => b.Id - a.Id);
                     const customersDiv = document.getElementById('customersDisplay');
                     customersDiv.innerHTML = '';
 
@@ -202,23 +253,96 @@
                 });
         }
 
-        // Function to add a new customer
-        function addCustomer() {
-            const customerName = document.getElementById('customerName').value;
-            const customerCity = document.getElementById('customerCity').value;
-            const customerAge = document.getElementById('customerAge').value;
-            const accessToken = sessionStorage.getItem('access_token');
+        // old Customer adding function without the user
+        
+        // function addCustomer() {
+        //     const customerName = document.getElementById('customerName').value;
+        //     const customerCity = document.getElementById('customerCity').value;
+        //     const customerAge = document.getElementById('customerAge').value;
+        //     const accessToken = sessionStorage.getItem('access_token');
 
-            axios.post(`${MY_SERVER}/customers`, { Name: customerName, City: customerCity, Age: customerAge }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
+        //     axios.post(`${MY_SERVER}/customers`, { Name: customerName, City: customerCity, Age: customerAge }, {
+        //         headers: { 'Authorization': `Bearer ${accessToken}` }
+        //     })
+        //         .then(response => {
+        //             console.log('Customer added successfully:', response.data);
+        //             // Reload customers after adding a new one
+        //             fetchCustomers();
+        //         })
+        //         .catch(error => {
+        //             console.error('Error adding customer:', error);
+        //         });
+        // }
+
+        // Register a new user and customer
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const Name = document.getElementById('Name').value;
+            const City = document.getElementById('City').value;
+            const Age = document.getElementById('Age').value;
+
+            if (!username || !password || !confirmPassword || !Name || !City || !Age) {
+                // Empty fields, show error message
+                Toastify({
+                    text: 'Please fill in all the required fields.',
+                    gravity: "top",
+                    position: "center",
+                    duration: 5000,
+                    style: {
+                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                    },
+                }).showToast();
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                // Passwords don't match, show error message
+                Toastify({
+                    text: 'Passwords do not match. Please try again.',
+                    gravity: "top",
+                    position: "center",
+                    duration: 5000,
+                    style: {
+                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                    },
+                }).showToast();
+                return;
+            }
+            axios.post(`${MY_SERVER}/register`, { Username: username, Password: password, Name: Name, City: City, Age: Age })
                 .then(response => {
                     console.log('Customer added successfully:', response.data);
                     // Reload customers after adding a new one
                     fetchCustomers();
+
                 })
                 .catch(error => {
-                    console.error('Error adding customer:', error);
+                    console.error('Registration error:', error);
+
+                    if (error.response.status === 400 && error.response.data.message === 'Username already taken') {
+                        // Username is already taken, show error message
+                        Toastify({
+                            text: 'That username is already taken. Please select a different one.',
+                            gravity: "top",
+                            position: "center",
+                            duration: 5000,
+                            style: {
+                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                            },
+                        }).showToast();
+                    } else {
+                        // Use Toastify for error message
+                        Toastify({
+                            text: 'Registration failed. Please try again.',
+                            gravity: "top",
+                            position: "center",
+                            duration: 5000,
+                            style: {
+                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                            },
+                        }).showToast();
+                    }
                 });
         }
 
@@ -228,6 +352,34 @@
             const customerCity = document.getElementById('customerCity').value;
             const customerAge = document.getElementById('customerAge').value;
             const accessToken = sessionStorage.getItem('access_token');
+
+            if (!customerName || !customerCity || !customerAge) {
+                // Empty fields, show error message
+                Toastify({
+                    text: 'Please fill in all the required fields.',
+                    gravity: "top",
+                    position: "center",
+                    duration: 5000,
+                    style: {
+                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                    },
+                }).showToast();
+                return;
+            }
+
+            if (!selectedCustomerId) {
+                // No customer selected for editing, show error message
+                Toastify({
+                    text: 'Please select a customer to edit.',
+                    gravity: 'top',
+                    position: 'center',
+                    duration: 5000,
+                    style: {
+                        background: 'linear-gradient(to right, #ff4b2b, #ff416c)',
+                    },
+                }).showToast();
+                return;
+            }
 
             // Use the selectedCustomerId when sending the request
             axios.put(`${MY_SERVER}/customers/${selectedCustomerId}`, {
@@ -254,8 +406,8 @@
             document.getElementById('customerCity').value = customer.City;
             document.getElementById('customerAge').value = customer.Age;
             // Scroll to the "Add Customer" section
-            const addCustomerSection = document.getElementById('addCustomerSection');
-            addCustomerSection.scrollIntoView({ behavior: 'smooth' });
+            const editCustomerSection = document.getElementById('editCustomerSection');
+            editCustomerSection.scrollIntoView({ behavior: 'smooth' });
         }
 
         // Function to clear form fields
@@ -264,12 +416,20 @@
             document.getElementById('customerCity').value = '';
             document.getElementById('customerAge').value = '';
         }
+        function clearRegFields() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('Name').value = '';
+            document.getElementById('City').value = '';
+            document.getElementById('Age').value = '';
+        }
 
         // Function to delete a customer and related user
         function deleteCustomer(customerId) {
             const accessToken = sessionStorage.getItem('access_token');
             // Display a confirmation dialog
-      
+
             const isConfirmed = confirm(`Deleting this customer will also delete the associated user account. Are you sure?`);
 
             if (isConfirmed) {
