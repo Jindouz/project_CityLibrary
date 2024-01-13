@@ -66,6 +66,35 @@ user_parser.add_argument('CustomerID', type=int, required=False, help='CustomerI
 
 
 
-This book can be loaned for: 
+        /* .navbar-brand {
+            color: white !important;
+            font-size: 24px;
+        } */
 
-You have loaned this book for X Days, remember to return it before X!
+
+        /* .nav-link {
+            color: white !important;
+            margin-right: 20px;
+            font-size: 18px;
+        } */
+
+        /* .nav-link:hover {
+            text-decoration: underline;
+        } */
+
+
+
+Find book by name
+Find customer by name
+add picture to books and default picture if none
+
+loans.html:
+add functionality to edit and delete buttons
+add toastify to everything
+on edit renew return date?
+
+in loans GET (back function) can do it both ways:
+# customer = db.session.get(Customer, loan.CustomerID)
+# book = db.session.get(Book, loan.BookID)
+customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
+book = db.session.query(Book).filter_by(Id=loan.BookID).first()

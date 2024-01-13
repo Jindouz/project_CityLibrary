@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night City Library - Loans</title>
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon2.png">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <style>
+        .navbar {
+            background-image: url('assets/icons/navbar.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 110px;
+        }
+
+        .navbar-brand img {
+            margin-right: 10px;
+        }
+
+        .card {
+            margin-top: 10px;
+        }
+
+        body.modal-open {
+            overflow: auto !important;
+            padding-right: 12px !important;
+
+        }
+    </style>
+</head>
+
+<body class="container">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="index.html" style="color: white;">
+                <img src="assets/icons/home2.jpg" alt="Library Logo" width="12%" class="d-inline-block align-text-top">
+                <span class="ms-2" style="font-size: 35px; font-weight: 500;">Night City Library</span>
+            </a>
+
+            <!-- Navbar Toggler (for smaller screens) -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon" style="font-size: 70%;"></span>
+            </button>
+
+            <!-- Navbar Items -->
+            <div class="collapse navbar-collapse" id="navbarNav" style="background-color: #000933; padding: 10px;">
+                <ul class="navbar-nav ms-auto">
+                    <div style="white-space: nowrap;">
+                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span
+                                id="displayusername"></span></h5>
+                    </div>
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="text-center">
+        <div class="mt-3" style="display: flex; justify-content: space-between;">
+            <h3>Welcome <span id="displayname"></span>!</h3>
+            <div id="adminButtons" style="margin-right: 10px;"></div>
+        </div>
+    </div>
+
+    <h3 class="mt-4" style="text-align: center;">Loan Manager</h3>
+    </div>
+
+
+    <br>
+
+    <div class="row justify-content-center">
+        <div class="card col-md-5">
+            <div class="card-header">
+                <h3>Loan a Book</h3>
+            </div>
+            <div class="card-body">
+                <form id="loanForm">
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Customer Name:</label>
+                        <select id="customerName" name="customerName" class="form-select" required>
+                            <!-- Options for customer names will be dynamically populated here -->
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bookName" class="form-label">Book Name:</label>
+                        <select id="bookName" name="bookName" class="form-select" required>
+                            <!-- Options for book names will be dynamically populated here -->
+                        </select>
+                    </div>
+
+
+                    <button onclick="loanBook()" class="btn btn-primary">Loan Book</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="card col-md-10 mx-auto">
+            <div class="card-header">
+                <h3>Current Loans</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Book Name</th>
+                            <th>Return Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loanTableBody">
+                        <!-- Loan data will be displayed here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Loan Modal -->
+    <div class="modal fade" id="editLoanModal" tabindex="-1" aria-labelledby="editLoanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLoanModalLabel">Edit Loan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editLoanForm">
+                        <input type="hidden" id="editLoanID" name="editLoanID">
+                        <div class="mb-3">
+                            <label for="editCustomerID" class="form-label">Customer ID:</label>
+                            <input type="text" id="editCustomerID" name="editCustomerID" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editBookID" class="form-label">Book ID:</label>
+                            <input type="text" id="editBookID" name="editBookID" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Loan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+<script>
+
+    MY_SERVER = "http://127.0.0.1:5000"
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const accessToken = sessionStorage.getItem('access_token');
+        // Fetch and display customers in the dropdown
+        axios.get(`${MY_SERVER}/customers`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            .then(response => {
+                const customers = response.data.customers;
+                const customerDropdown = document.getElementById('customerName');
+                customers.forEach(function (customer) {
+                    const option = document.createElement('option');
+                    option.value = customer.Id;
+                    option.text = `${customer.Name} (${customer.City}) - Age: ${customer.Age}`;
+                    customerDropdown.add(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching customers:', error);
+            });
+
+        // Fetch and display books in the dropdown
+        axios.get(`${MY_SERVER}/books`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            .then(response => {
+                const books = response.data.books;
+                const bookDropdown = document.getElementById('bookName');
+                books.forEach(book => {
+                    bookType = 0;
+                        if (book.Type == 1) {
+                            bookType = 10;
+                        } else if (book.Type == 2) {
+                            bookType = 5;
+                        } else if (book.Type == 3) {
+                            bookType = 2;
+                        }
+                    const option = document.createElement('option');
+                    option.value = book.Id;
+                    option.text = `${book.Name} by ${book.Author} (${book.YearPublished}) - Loan Duration: ${bookType} Days`;
+                    option.title = `Can be loaned for ${bookType} Days`;
+                    bookDropdown.add(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+            });
+
+        // Handle form submission for loaning a book
+        const loanForm = document.getElementById('loanForm');
+        loanForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const customerID = document.getElementById('customerName').value;
+            const bookID = document.getElementById('bookName').value;
+            const returnDate = document.getElementById('returnDate').value;
+
+            // Perform the loaning logic here (you need to implement this)
+
+            // After successful loaning, you may want to clear the form or show a success message
+            loanForm.reset();
+            showToast('Book loaned successfully!', 'success');
+        });
+
+        // Load and display current loans
+        loadLoans();
+    });
+
+    // Function to load and display current loans
+    function loadLoans() {
+        const accessToken = sessionStorage.getItem('access_token');
+        axios.get(`${MY_SERVER}/loans`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            .then(response => {
+                const loans = response.data.loans;
+                loans.sort((a, b) => b.Id - a.Id);
+                const loanTableBody = document.getElementById('loanTableBody');
+                loanTableBody.innerHTML = ''; // Clear existing data
+
+                loans.forEach(loan => {
+                    const row = loanTableBody.insertRow();
+                    row.innerHTML = `
+                    <td>${loan.customerName}</td>
+                    <td>${loan.bookName}</td>
+                    <td>${loan.Returndate}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
+                    </td>
+                `;
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching loans:', error);
+            });
+    }
+
+
+    // Function to get the current user to check for login, welcome message, and deny access if not admin
+    function getCurrentUser() {
+        const accessToken = sessionStorage.getItem('access_token');
+        if (!accessToken) {
+            // Redirect to login.html if not logged in
+            window.location.href = 'login.html?loginMessage=true';
+        }
+
+        axios.get(`${MY_SERVER}/user`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+            .then(response => {
+                document.getElementById('displayname').innerHTML = response.data.Name;
+                if (response.data.is_admin == true) {
+                    document.getElementById('displayusername').innerHTML = "Admin " + response.data.Username;
+
+                    const adminButton = document.createElement('a');
+                    adminButton.href = 'menu.html';
+                    adminButton.className = 'btn btn-success btn-sm';
+                    adminButton.innerHTML = 'Admin Menu';
+
+                    adminButtons.appendChild(adminButton);
+                }
+                else {
+                    document.getElementById('displayusername').innerHTML = response.data.Username;
+                }
+            })
+            .catch(error => {
+                // If the request returns a 401, redirect to login.html
+                if (error.response && error.response.status === 401) {
+                    window.location.href = 'login.html?loginMessage=true';
+                } else {
+                    console.error('Error checking login status:', error);
+                }
+            });
+    }
+
+    getCurrentUser()
+
+</script>
+
+</html>

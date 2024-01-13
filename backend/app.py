@@ -48,9 +48,6 @@ class Loan(db.Model):
     Loandate = db.Column(db.Date)
     Returndate = db.Column(db.Date)
 
-
-
-
 # =====
 
 # User Model (Login) 
@@ -65,7 +62,7 @@ class User(db.Model):
 # ==============================================
 
 # Route for redirecting to the frontend pages without needing 
-# to use live server on a different port (a solution against CORS Errors)
+# to use live server on a different port (an alternative solution that avoids CORS Errors)
 @app.route('/')
 def landing_page():
     redirect_url = '/frontend/index.html'
@@ -317,6 +314,7 @@ customer_parser.add_argument('Age', type=int, required=True, help='Age cannot be
 
 # Customers CRUD
 class CustomerResource(Resource):
+    # GET customers function (also using a join query with the users table)
     @jwt_required()
     def get(self, customer_id=None):
         current_user = get_jwt_identity()
@@ -327,7 +325,7 @@ class CustomerResource(Resource):
             if customer:
                 user = User.query.filter_by(CustomerID=customer.Id).first()
                 username = user.Username if user else None
-                isAdmin = user.is_admin if user else None
+                isAdmin = user.is_admin if user else None # Get user's admin status and username else set them to None (for debug)
                 return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age, 'Username': username, 'is_admin': isAdmin}
             else:
                 return {'message': 'Customer not found'}, 404
@@ -434,26 +432,42 @@ loan_parser.add_argument('Returndate', type=str, required=False)
 
 # Loans CRUD
 class LoanResource(Resource):
+    # GET loans function (also using a join query with the customers and books table)
     @jwt_required()
     def get(self, loan_id=None):
         current_user = get_jwt_identity()
+
         if loan_id:
             loan = db.session.get(Loan, loan_id) # Get loan by ID
+
             if loan:
+                customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
+                book = db.session.query(Book).filter_by(Id=loan.BookID).first()
+                customerName = customer.Name if customer else None
+                bookName = book.Name if book else None # Get customer name and book name if they exist else set them to None (for debug)
                 loan_data = {'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
                              'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
-                             'Returndate': loan.Returndate.strftime('%d-%m-%Y')}
-                ic(current_user, "used Loans GET by ID.") # IC logging to logger.txt
+                             'Returndate': loan.Returndate.strftime('%d-%m-%Y'),
+                             'customerName': customerName, 'bookName': bookName}
+               
                 return {'loan': loan_data}
             else:
                 return {'message': 'Loan not found'}, 404
         else:
             loans = Loan.query.all() # Get all loans
-            loans_data = [{'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
-                           'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
-                           'Returndate': loan.Returndate.strftime('%d-%m-%Y')}
-                          for loan in loans]
-            ic(current_user, "used Loans GET.") # IC logging to logger.txt
+            loans_data = []
+
+            for loan in loans: 
+                customer = db.session.get(Customer, loan.CustomerID)
+                book = db.session.get(Book, loan.BookID)
+                customerName = customer.Name if customer else None
+                bookName = book.Name if book else None
+                loans_data.append({
+                    'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
+                    'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
+                    'Returndate': loan.Returndate.strftime('%d-%m-%Y'),
+                    'customerName': customerName, 'bookName': bookName })
+                             
             return {'loans': loans_data}
 
     @jwt_required()
