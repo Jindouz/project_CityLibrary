@@ -186,39 +186,6 @@
         // Call the function to check if the user is logged in to have access to the rest of the page
         checkLogin()
 
-        function addBook() {
-            const name = document.getElementById('name').value;
-            const author = document.getElementById('author').value;
-            const yearPublished = document.getElementById('yearPublished').value;
-            const type = document.getElementById('type').value;
-            const accessToken = sessionStorage.getItem('access_token');
-
-            axios.post(`${MY_SERVER}/books`, { Name: name, Author: author, YearPublished: yearPublished, Type: type }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
-                .then(response => {
-                    console.log('Book added successfully:', response.data);
-                    // Reload books after adding a new one
-                    checkLogin();
-                })
-                .catch(error => {
-                    // If the request returns a 403, redirect to login.html
-                    if (error.response && error.response.status === 403) {
-                        Toastify({
-                            text: 'You need to be an admin to add books.',
-                            gravity: "top",
-                            position: "center",
-                            duration: 5000,
-                            style: {
-                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                            },
-                        }).showToast();
-                    } else {
-                        console.error('Error checking login status:', error);
-                    }
-                });
-
-        }
 
 
         function logout() {
@@ -227,67 +194,8 @@
         }
 
         // Function to handle the Edit Book button
-        function editBookForm() {
-            const name = document.getElementById('name').value;
-            const author = document.getElementById('author').value;
-            const yearPublished = document.getElementById('yearPublished').value;
-            const type = document.getElementById('type').value;
-            const accessToken = sessionStorage.getItem('access_token');
-
-            // Use the selectedBookId when sending the request
-            axios.put(`${MY_SERVER}/books/${selectedBookId}`, {
-                Name: name,
-                Author: author,
-                YearPublished: yearPublished,
-                Type: type
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
-                .then(response => {
-                    console.log('Book updated successfully:', response.data);
-                    // Reload the books after editing
-                    checkLogin();
-                })
-                .catch(error => {
-                    console.error('Error updating book:', error);
-                });
-        }
 
         // Function to populate form fields for editing
-        function editBookFields(book) {
-            selectedBookId = book.Id;
-            document.getElementById('name').value = book.Name;
-            document.getElementById('author').value = book.Author;
-            document.getElementById('yearPublished').value = book.YearPublished;
-            document.getElementById('type').value = book.Type;
-            // Scroll to the "Add Book" section
-            const addBookSection = document.getElementById('addBookSection');
-            addBookSection.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Function to clear form fields
-        function clearFields() {
-            document.getElementById('name').value = '';
-            document.getElementById('author').value = '';
-            document.getElementById('yearPublished').value = '';
-            document.getElementById('type').value = '';
-        }
-
-        function deleteBook(bookId) {
-            const accessToken = sessionStorage.getItem('access_token');
-
-            axios.delete(`${MY_SERVER}/books/${bookId}`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
-                .then(response => {
-                    console.log('Book deleted successfully:', response.data);
-                    // Reload the books after deleting
-                    checkLogin();
-                })
-                .catch(error => {
-                    console.error('Error deleting book:', error);
-                });
-        }
 
 
 
@@ -326,6 +234,20 @@
             // Show success message after successful login
             Toastify({
                 text: "Login Successful!",
+                gravity: "top",
+                position: "center",
+                duration: 5000,
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)"
+                },
+            }).showToast();
+        }
+
+        const accessMsg = urlParams.get('denied');
+        if (accessMsg === 'true') {
+            // Show access denied message after trying to access an admin page as a regular user
+            Toastify({
+                text: "Access Denied.",
                 gravity: "top",
                 position: "center",
                 duration: 5000,

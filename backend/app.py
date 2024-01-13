@@ -327,7 +327,8 @@ class CustomerResource(Resource):
             if customer:
                 user = User.query.filter_by(CustomerID=customer.Id).first()
                 username = user.Username if user else None
-                return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age, 'Username': username}
+                isAdmin = user.is_admin if user else None
+                return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age, 'Username': username, 'is_admin': isAdmin}
             else:
                 return {'message': 'Customer not found'}, 404
         else:
@@ -337,12 +338,14 @@ class CustomerResource(Resource):
             for customer in customers:
                 user = User.query.filter_by(CustomerID=customer.Id).first()
                 username = user.Username if user else None
+                isAdmin = user.is_admin if user else None
                 customers_data.append({
                     'Id': customer.Id,
                     'Name': customer.Name,
                     'City': customer.City,
                     'Age': customer.Age,
-                    'Username': username
+                    'Username': username,
+                    'is_admin': isAdmin
                 })
 
             return {'customers': customers_data}

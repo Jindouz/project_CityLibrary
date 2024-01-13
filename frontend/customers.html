@@ -50,6 +50,12 @@
         .card {
             margin-top: 20px;
         }
+
+        body.modal-open {
+            overflow: auto !important;
+            padding-right: 12px !important;
+
+        }
     </style>
 </head>
 
@@ -88,7 +94,7 @@
         <div class="mt-3" id="adminButtons" style="margin-right: 10px;"></div>
     </div>
 
-    <h3 class="mt-4" style="text-align: center;">Customer Manager:</h3>
+    <h3 class="mt-4" style="text-align: center;">Customer Manager</h3>
     </div>
 
 
@@ -96,32 +102,6 @@
 
     <div class="row justify-content-center">
         <div class="card col-md-5">
-            <div class="card">
-                <div class="card-header" id="editCustomerSection">
-                    <h3>Edit a Customer</h3>
-                </div>
-                <div class="card-body">
-                    <form id="addCustomerForm">
-                        <div class="mb-3">
-                            <label for="customerName" class="form-label">Customer Name:</label>
-                            <input type="text" id="customerName" name="customerName" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="customerCity" class="form-label">Customer City:</label>
-                            <input type="City" id="customerCity" name="customerCity" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="customerAge" class="form-label">Customer Age:</label>
-                            <input type="tel" id="customerAge" name="customerAge" class="form-control" required>
-                        </div>
-
-                        <button type="button" class="btn btn-primary" onclick="editCustomerForm()">Save Edited
-                            Customer</button>
-                        <button type="button" class="btn btn-warning" onclick="clearCustomerFields()">Clear
-                            Fields</button>
-                    </form>
-                </div>
-                <div class="card">
                     <div class="card-header">
                         <h3>Register a new Customer</h3>
                     </div>
@@ -143,7 +123,6 @@
                                     required>
                             </div>
 
-                            <!-- Additional registration form fields (Name, City, Age) -->
                             <div class="mb-3">
                                 <label for="Name" class="form-label">Name:</label>
                                 <input type="text" id="Name" name="Name" class="form-control" required>
@@ -164,13 +143,11 @@
                                 Fields</button>
                         </form>
                     </div>
-                </div>
-            </div>
         </div>
 
 
 
-        <!-- Customer List Section -->
+        <!-- Customer List -->
         <div class="card col-md-5">
             <div class="card-header">
                 <h3>Customer List</h3>
@@ -178,15 +155,70 @@
             <div class="card-body" id="customersDisplay"></div>
         </div>
     </div>
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Deleting this customer will also delete the associated user account. Are you sure?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="modal fade" id="editCustomerModal" data-bs-backdrop="static" tabindex="-1"
+        aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="editCustomerModalLabel">Edit Customer (Username: <span
+                            id="customerUsername"></span>)</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveEditedCustomer">
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Customer Name:</label>
+                            <input type="text" id="customerName" name="customerName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerCity" class="form-label">Customer City:</label>
+                            <input type="City" id="customerCity" name="customerCity" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerAge" class="form-label">Customer Age:</label>
+                            <input type="tel" id="customerAge" name="customerAge" class="form-control" required>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveEditedCustomer()">Save Edited
+                                Customer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <script>
         MY_SERVER = "http://127.0.0.1:5000";
 
-        // Global variable to store the selected customer ID
-        let selectedCustomerId;
+        // Global variable to store the selected customer ID (mainly for editing)
+        let selectedCustomerId = 0;
+        // Global variable for the edit customer modal
+        const editCustomerModal = new bootstrap.Modal(document.getElementById('editCustomerModal'));
 
-        // Function to fetch all customers
+        // GET all customers
         function fetchCustomers() {
             const accessToken = sessionStorage.getItem('access_token');
             axios.get(`${MY_SERVER}/customers`, {
@@ -194,7 +226,7 @@
             })
                 .then(response => {
                     const customers = response.data.customers;
-                    // Sort customers by Id in descending order
+                    // Sort customers by Id in descending order (newest at the top)
                     customers.sort((a, b) => b.Id - a.Id);
                     const customersDiv = document.getElementById('customersDisplay');
                     customersDiv.innerHTML = '';
@@ -211,13 +243,20 @@
                         // Customer info
                         const customerInfo = document.createElement('p');
                         customerInfo.className = 'card-text';
-                        customerInfo.innerHTML = `<strong>Name:</strong> ${customer.Name}, <strong>City:</strong> ${customer.City}, <strong>Age:</strong> ${customer.Age}, <strong>Username:</strong> ${customer.Username || 'N/A'}`;
+
+                        if (customer.is_admin == true) {
+                            customerInfo.innerHTML = `<strong>Name:</strong> ${customer.Name}, <strong>City:</strong> ${customer.City}, <strong>Age:</strong> ${customer.Age}<br><strong>Username:</strong> ${customer.Username}, <strong>Admin Account</strong>`;
+
+                        } else {
+                            customerInfo.innerHTML = `<strong>Name:</strong> ${customer.Name}, <strong>City:</strong> ${customer.City}, <strong>Age:</strong> ${customer.Age}<br><strong>Username:</strong> ${customer.Username || 'N/A'}`;
+                            // I could also move the delete or edit button here to prevent admin users from deleting or editing other admin accounts
+                        }
 
                         // Buttons container
                         const buttonsContainer = document.createElement('div');
                         buttonsContainer.className = 'd-flex justify-content-end';
 
-                        // Add delete button
+                        // delete button
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Delete';
                         deleteButton.className = 'btn btn-danger btn-sm me-2';
@@ -226,7 +265,7 @@
                         };
                         buttonsContainer.appendChild(deleteButton);
 
-                        // Add edit button
+                        // edit button
                         const editButton = document.createElement('button');
                         editButton.textContent = 'Edit';
                         editButton.className = 'btn btn-warning btn-sm';
@@ -242,10 +281,6 @@
 
                         // Append card to the customersDiv
                         customersDiv.appendChild(card);
-
-                        // Create an <hr> element between cards
-                        const hr = document.createElement('hr');
-                        customersDiv.appendChild(hr);
                     });
                 })
                 .catch(error => {
@@ -254,7 +289,7 @@
         }
 
         // old Customer adding function without the user
-        
+
         // function addCustomer() {
         //     const customerName = document.getElementById('customerName').value;
         //     const customerCity = document.getElementById('customerCity').value;
@@ -312,6 +347,15 @@
             }
             axios.post(`${MY_SERVER}/register`, { Username: username, Password: password, Name: Name, City: City, Age: Age })
                 .then(response => {
+                    Toastify({
+                        text: 'Customer added successfully.',
+                        gravity: "top",
+                        position: "center",
+                        duration: 7000,
+                        style: {
+                            background: "linear-gradient(to right, #00b09b, #96c93d)"
+                        },
+                    }).showToast();
                     console.log('Customer added successfully:', response.data);
                     // Reload customers after adding a new one
                     fetchCustomers();
@@ -347,11 +391,13 @@
         }
 
         // Function to handle the Edit Customer button
-        function editCustomerForm() {
+        function saveEditedCustomer() {
             const customerName = document.getElementById('customerName').value;
             const customerCity = document.getElementById('customerCity').value;
             const customerAge = document.getElementById('customerAge').value;
             const accessToken = sessionStorage.getItem('access_token');
+
+
 
             if (!customerName || !customerCity || !customerAge) {
                 // Empty fields, show error message
@@ -390,9 +436,20 @@
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
+                    editCustomerModal.hide();
+                    Toastify({
+                        text: 'Customer updated successfully.',
+                        gravity: "top",
+                        position: "center",
+                        duration: 7000,
+                        style: {
+                            background: "linear-gradient(to right, #00b09b, #96c93d)"
+                        },
+                    }).showToast();
                     console.log('Customer updated successfully:', response.data);
                     // Reload the customers after editing
                     fetchCustomers();
+
                 })
                 .catch(error => {
                     console.error('Error updating customer:', error);
@@ -401,21 +458,15 @@
 
         // Function to populate form fields for editing
         function editCustomerFields(customer) {
+            editCustomerModal.show();
             selectedCustomerId = customer.Id;
             document.getElementById('customerName').value = customer.Name;
             document.getElementById('customerCity').value = customer.City;
             document.getElementById('customerAge').value = customer.Age;
-            // Scroll to the "Add Customer" section
-            const editCustomerSection = document.getElementById('editCustomerSection');
-            editCustomerSection.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('customerUsername').innerHTML = customer.Username || 'N/A';
         }
 
         // Function to clear form fields
-        function clearCustomerFields() {
-            document.getElementById('customerName').value = '';
-            document.getElementById('customerCity').value = '';
-            document.getElementById('customerAge').value = '';
-        }
         function clearRegFields() {
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
@@ -430,13 +481,25 @@
             const accessToken = sessionStorage.getItem('access_token');
             // Display a confirmation dialog
 
-            const isConfirmed = confirm(`Deleting this customer will also delete the associated user account. Are you sure?`);
+            // const isConfirmed = confirm(`Deleting this customer will also delete the associated user account. Are you sure?`);
+            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+            confirmationModal.show();
 
-            if (isConfirmed) {
+            // if (isConfirmed) {
+            document.getElementById('confirmDelete').addEventListener('click', () => {
                 axios.delete(`${MY_SERVER}/customers/${customerId}`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 })
                     .then(response => {
+                        Toastify({
+                            text: 'Customer and User deleted successfully.',
+                            gravity: "top",
+                            position: "center",
+                            duration: 7000,
+                            style: {
+                                background: "linear-gradient(to right, #e8a400, #ffc257)"
+                            },
+                        }).showToast();
                         console.log('Customer and User deleted successfully:', response.data);
                         // Reload the customers after deleting
                         fetchCustomers();
@@ -444,35 +507,10 @@
                     .catch(error => {
                         console.error('Error deleting customer and user:', error);
                     });
-            }
-        }
-        // Function to check if the user is logged in
-        function checkLogin() {
-            const accessToken = sessionStorage.getItem('access_token');
-
-            if (!accessToken) {
-                // Redirect to login.html if not logged in
-                window.location.href = 'login.html?loginMessage=true';
-            }
-
-            axios.get(`${MY_SERVER}/user`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
-                .then(response => {
-                    // User is authenticated, handle accordingly
-                    console.log('User is authenticated:', response.data);
-                })
-                .catch(error => {
-                    // If the request returns a 401, redirect to login.html
-                    if (error.response && error.response.status === 401) {
-                        window.location.href = 'login.html?loginMessage=true';
-                    } else {
-                        console.error('Error checking login status:', error);
-                    }
-                });
+                confirmationModal.hide();
+            });
         }
 
-        checkLogin();
         fetchCustomers();
 
         function logout() {
@@ -480,12 +518,18 @@
             window.location.href = 'login.html?logout=true';
         }
 
+        // Function to get the current user to check for login, welcome message, and deny access if not admin
         function getCurrentUser() {
             const accessToken = sessionStorage.getItem('access_token');
+            if (!accessToken) {
+                // Redirect to login.html if not logged in
+                window.location.href = 'login.html?loginMessage=true';
+            }
             axios.get(`${MY_SERVER}/user`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
+                    // Check if the user is an admin
                     if (response.data.is_admin == true) {
                         document.getElementById('displayusername').innerHTML = "Admin " + response.data.Username;
 
@@ -497,11 +541,16 @@
                         adminButtons.appendChild(adminButton);
                     }
                     else {
-                        document.getElementById('displayusername').innerHTML = response.data.Username;
+                        window.location.href = 'index.html?denied=true';
                     }
                 })
                 .catch(error => {
-                    console.error('Error checking login status:', error);
+                    // If the request returns a 401, redirect to login.html
+                    if (error.response && error.response.status === 401) {
+                        window.location.href = 'login.html?loginMessage=true';
+                    } else {
+                        console.error('Error checking login status:', error);
+                    }
                 });
 
         }
