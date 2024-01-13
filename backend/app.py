@@ -374,17 +374,8 @@ class CustomerResource(Resource):
         else:
             return {'message': 'Customer not found'}, 404
 
-    # @jwt_required()
-    # def delete(self, customer_id):
-    #     current_user = get_jwt_identity()
-    #     customer = db.session.get(Customer, customer_id)
-    #     if customer:
-    #         db.session.delete(customer)
-    #         db.session.commit()
-    #         return {'message': 'Customer deleted successfully'}
-    #     else:
-    #         return {'message': 'Customer not found'}, 404
-        
+
+    # delete customer and related user
     @jwt_required()
     def delete(self, customer_id):
         current_user = get_jwt_identity()
@@ -401,7 +392,7 @@ class CustomerResource(Resource):
             db.session.delete(customer)  # Delete the customer
             db.session.commit()
 
-            ic(current_user, "used Customers DELETE. Auth Token: OK")  # IC logging to logger.txt
+            ic(current_user, "used Customers DELETE.")  # IC logging to logger.txt
             return {'message': 'Customer and User deleted successfully'}
         else:
             return {'message': 'Customer not found'}, 404
@@ -452,7 +443,7 @@ class LoanResource(Resource):
                 loan_data = {'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
                              'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
                              'Returndate': loan.Returndate.strftime('%d-%m-%Y')}
-                ic(current_user, "used Loans GET by ID. Auth Token: OK") # IC logging to logger.txt
+                ic(current_user, "used Loans GET by ID.") # IC logging to logger.txt
                 return {'loan': loan_data}
             else:
                 return {'message': 'Loan not found'}, 404
@@ -462,7 +453,7 @@ class LoanResource(Resource):
                            'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
                            'Returndate': loan.Returndate.strftime('%d-%m-%Y')}
                           for loan in loans]
-            ic(current_user, "used Loans GET. Auth Token: OK") # IC logging to logger.txt
+            ic(current_user, "used Loans GET.") # IC logging to logger.txt
             return {'loans': loans_data}
 
     @jwt_required()
@@ -502,7 +493,7 @@ class LoanResource(Resource):
 
             # Return the loan_id in the response
             response_data = {'message': 'Book loaned successfully', 'loan_id': loan_id}
-            ic(current_user, "used Loans POST. Auth Token: OK") # IC logging to logger.txt
+            ic(current_user, "used Loans POST.") # IC logging to logger.txt
             return response_data, 201
         except Exception as e:
             db.session.rollback()
@@ -549,7 +540,7 @@ class LoanResource(Resource):
 
             try:
                 db.session.commit()
-                ic(current_user, "used Loans PUT. Auth Token: OK") # IC logging to logger.txt
+                ic(current_user, "used Loans PUT.") # IC logging to logger.txt
                 return {'message': 'Loan updated successfully'}
             except Exception as e:
                 db.session.rollback()
@@ -564,7 +555,7 @@ class LoanResource(Resource):
         if loan:
             db.session.delete(loan)
             db.session.commit()
-            ic(current_user, "used Loans DELETE. Auth Token: OK") # IC logging to logger.txt
+            ic(current_user, "used Loans DELETE.") # IC logging to logger.txt
             return {'message': 'Loan deleted successfully'}
         else:
             return {'message': 'Loan not found'}, 404

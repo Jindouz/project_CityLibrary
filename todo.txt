@@ -65,3 +65,7 @@ user_parser.add_argument('is_admin', type=bool, required=True, help='is_admin ca
 user_parser.add_argument('CustomerID', type=int, required=False, help='CustomerID cannot be blank')
 
 
+
+This book can be loaned for: 
+
+You have loaned this book for X Days, remember to return it before X!

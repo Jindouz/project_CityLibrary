@@ -23,6 +23,9 @@
             background-repeat: no-repeat;
             height: 110px;
         }
+        .navbar-brand img {
+            margin-right: 10px;
+        }
     </style>
 </head>
 
@@ -31,28 +34,26 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.html" style="color: white;">
-                <img src="assets/icons/home2.jpg" alt="Library Logo" width="120" height="100"
-                    class="d-inline-block align-text-top">
-
+            <a class="navbar-brand d-flex align-items-center" href="index.html" style="color: white;">
+                <img src="assets/icons/home2.jpg" alt="Library Logo" width="12%" class="d-inline-block align-text-top">
+                <span class="ms-2" style="font-size: 35px; font-weight: 500;">Night City Library</span>
             </a>
-            <h1 style="text-align: center; color: white;">Night City Library</h1>
+    
             <!-- Navbar Toggler (for smaller screens) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+                <span class="navbar-toggler-icon" style="font-size: 70%;"></span>
             </button>
-
+    
             <!-- Navbar Items -->
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarNav" style="background-color: #000933; padding: 10px;">
                 <ul class="navbar-nav ms-auto">
-                    <div>
-                        <h5 style="margin-right: 20px;">Logged in as <span id=displayusername></span>.</h5>
+                    <div style="white-space: nowrap;">
+                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span id="displayusername"></span></h5>
                     </div>
                     <li class="nav-item">
                         <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
                     </li>
-
                 </ul>
             </div>
         </div>
@@ -116,11 +117,6 @@
         function checkLogin() {
             const accessToken = sessionStorage.getItem('access_token');
 
-            if (!accessToken) {
-                // Redirect to login.html if not logged in
-                window.location.href = 'login.html?loginMessage=true';
-            }
-
             // You can include additional logic here to verify the token or make an API request
 
             // Example: Making a request to a protected endpoint
@@ -169,16 +165,9 @@
                     });
                     booksDiv.appendChild(ul);
 
-                    // User is authenticated, handle accordingly
-                    console.log('User is authenticated:', response.data);
                 })
                 .catch(error => {
-                    // If the request returns a 401, redirect to login.html
-                    if (error.response && error.response.status === 401) {
-                        window.location.href = 'login.html?loginMessage=true';
-                    } else {
                         console.error('Error checking login status:', error);
-                    }
                 });
         }
 
@@ -193,14 +182,14 @@
             window.location.href = 'login.html?logout=true';
         }
 
-        // Function to handle the Edit Book button
-
-        // Function to populate form fields for editing
-
-
-
+        // Function to get the current user to check for login and welcome message
         function getCurrentUser() {
             const accessToken = sessionStorage.getItem('access_token');
+            if (!accessToken) {
+                // Redirect to login.html if not logged in
+                window.location.href = 'login.html?loginMessage=true';
+            }
+
             axios.get(`${MY_SERVER}/user`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
@@ -221,7 +210,12 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error checking login status:', error);
+                    // If the request returns a 401, redirect to login.html
+                    if (error.response && error.response.status === 401) {
+                        window.location.href = 'login.html?loginMessage=true';
+                    } else {
+                        console.error('Error checking login status:', error);
+                    }
                 });
 
         }
