@@ -479,13 +479,11 @@
         // Function to delete a customer and related user
         function deleteCustomer(customerId) {
             const accessToken = sessionStorage.getItem('access_token');
-            // Display a confirmation dialog
-
-            // const isConfirmed = confirm(`Deleting this customer will also delete the associated user account. Are you sure?`);
+            // Display a delete confirmation dialog
             const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
             confirmationModal.show();
 
-            // if (isConfirmed) {
+            // if confirmed delete
             document.getElementById('confirmDelete').addEventListener('click', () => {
                 axios.delete(`${MY_SERVER}/customers/${customerId}`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
