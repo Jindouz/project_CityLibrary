@@ -236,6 +236,20 @@
             const type = document.getElementById('type').value;
             const accessToken = sessionStorage.getItem('access_token');
 
+            if (!name || !author || !yearPublished || !type) {
+                // Empty fields, show error message
+                Toastify({
+                    text: 'Please fill in all the required fields.',
+                    gravity: "top",
+                    position: "center",
+                    duration: 5000,
+                    style: {
+                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                    },
+                }).showToast();
+                return;
+            }
+
             axios.post(`${MY_SERVER}/books`, { Name: name, Author: author, YearPublished: yearPublished, Type: type }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
