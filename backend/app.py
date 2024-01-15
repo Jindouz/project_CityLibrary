@@ -381,7 +381,7 @@ class CustomerResource(Resource):
             return {'message': 'Customer not found'}, 404
 
 
-    # delete customer and related user
+    # delete customer and related user including loans
     @jwt_required()
     def delete(self, customer_id):
         current_user = get_jwt_identity()
@@ -390,10 +390,15 @@ class CustomerResource(Resource):
         if customer:
             # Get the related user
             user = User.query.filter_by(CustomerID=customer.Id).first()
-
+            loan = Loan.query.filter_by(CustomerID=customer.Id)
             if user:
                 db.session.delete(user)  # Delete the related user
                 db.session.commit()
+                    
+            if loan:
+                for loans in loan:
+                    db.session.delete(loans) # Delete the related loans
+                    db.session.commit()
 
             db.session.delete(customer)  # Delete the customer
             db.session.commit()
@@ -435,7 +440,7 @@ def calculate_return_date(book_type):
 loan_parser = reqparse.RequestParser()
 loan_parser.add_argument('CustomerID', type=int, required=True, help='CustomerID cannot be blank')
 loan_parser.add_argument('BookID', type=int, required=True, help='BookID cannot be blank')
-loan_parser.add_argument('Loandate', type=str, required=True, help='Loandate cannot be blank (format: DD-MM-YYYY)')
+loan_parser.add_argument('Loandate', type=str, required=False)
 loan_parser.add_argument('Returndate', type=str, required=False)
 
 # Loans CRUD
@@ -451,12 +456,13 @@ class LoanResource(Resource):
             if loan:
                 customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
                 book = db.session.query(Book).filter_by(Id=loan.BookID).first()
+                user = db.session.query(User).filter_by(Id=loan.CustomerID).first()
                 customerName = customer.Name if customer else None
                 bookName = book.Name if book else None # Get customer name and book name if they exist else set them to None (for debug)
                 loan_data = {'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
-                             'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
-                             'Returndate': loan.Returndate.strftime('%d-%m-%Y'),
-                             'customerName': customerName, 'bookName': bookName}
+                             'Loandate': loan.Loandate.strftime('%Y-%m-%d'),
+                             'Returndate': loan.Returndate.strftime('%Y-%m-%d'),
+                             'customerName': customerName, 'bookName': bookName, 'userName': userName}
                
                 return {'loan': loan_data}
             else:
@@ -468,13 +474,15 @@ class LoanResource(Resource):
             for loan in loans: 
                 customer = db.session.get(Customer, loan.CustomerID)
                 book = db.session.get(Book, loan.BookID)
+                user = db.session.query(User).filter_by(CustomerID=loan.CustomerID).first()
                 customerName = customer.Name if customer else None
                 bookName = book.Name if book else None
+                userName = user.Username if user else None
                 loans_data.append({
                     'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
-                    'Loandate': loan.Loandate.strftime('%d-%m-%Y'),
-                    'Returndate': loan.Returndate.strftime('%d-%m-%Y'),
-                    'customerName': customerName, 'bookName': bookName })
+                    'Loandate': loan.Loandate.strftime('%Y-%m-%d'),
+                    'Returndate': loan.Returndate.strftime('%Y-%m-%d'),
+                    'customerName': customerName, 'bookName': bookName, 'userName': userName})
                              
             return {'loans': loans_data}
 
@@ -482,9 +490,12 @@ class LoanResource(Resource):
     def post(self):
         current_user = get_jwt_identity()
         data = loan_parser.parse_args()
+
+        # if not is_admin(current_user):
+        #     return {'message': 'Only admins can add books'}, 403
         
         # Convert the date strings to Python date objects
-        data['Loandate'] = datetime.strptime(data['Loandate'], '%d-%m-%Y').date()
+        data['Loandate'] = datetime.now().date()
 
         # Check if the customer with the given CustomerID exists
         customer = db.session.get(Customer, data['CustomerID'])
@@ -496,25 +507,20 @@ class LoanResource(Resource):
         if not book:
             return {'message': 'Book not found'}, 404
 
-        # Check if a loan with the same BookID and CustomerID already exists
-        existing_loan = Loan.query.filter_by(BookID=data['BookID'], CustomerID=data['CustomerID']).first()
-        if existing_loan:
-            return {'message': 'A loan for this book and customer already exists'}, 409  # Conflict
-
         # Calculate the return date based on the book type by calling the calculate_return_date function
         data['Returndate'] = calculate_return_date(book.Type)
 
+        # Check if a loan with the same BookID and CustomerID already exists
+        existing_loan = Loan.query.filter_by(BookID=data['BookID']).first()
+        if existing_loan:
+            return {'message': 'A loan for this book already exists'}, 409  # Conflict
         new_loan = Loan(**data)
 
         try:
             db.session.add(new_loan)
             db.session.commit()
 
-            # Get the ID of the created loan
-            loan_id = new_loan.Id
-
-            # Return the loan_id in the response
-            response_data = {'message': 'Book loaned successfully', 'loan_id': loan_id}
+            response_data = {'message': 'Book loaned successfully', 'BookID': data['BookID'], 'CustomerID': data['CustomerID']}
             ic(current_user, "used Loans POST.") # IC logging to logger.txt
             return response_data, 201
         except Exception as e:

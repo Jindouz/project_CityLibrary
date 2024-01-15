@@ -84,13 +84,14 @@ user_parser.add_argument('CustomerID', type=int, required=False, help='CustomerI
 
 
 
-Find book by name
-Find customer by name
+v - Find book by name
+v - Find customer by name
 add picture to books and default picture if none
 
 loans.html:
-add functionality to edit and delete buttons
-add toastify to everything
+half - add functionality to edit 
+v - and delete buttons
+half - add toastify to everything
 on edit renew return date?
 
 in loans GET (back function) can do it both ways:
@@ -98,3 +99,7 @@ in loans GET (back function) can do it both ways:
 # book = db.session.get(Book, loan.BookID)
 customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
 book = db.session.query(Book).filter_by(Id=loan.BookID).first()
+
+
+
+fixed - loans username is bugged, shows the wrong user

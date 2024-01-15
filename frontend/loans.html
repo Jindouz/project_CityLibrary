@@ -36,6 +36,14 @@
             padding-right: 12px !important;
 
         }
+
+        .overdue-loan {
+            background-color: #e04b4b !important;
+            /* Light red background */
+            color: #ffffff !important;
+            /* Red text color */
+            /* Add any other styles for overdue loans */
+        }
     </style>
 </head>
 
@@ -44,7 +52,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="index.html" style="color: white;">
+            <a class="navbar-brand d-flex align-items-center" href="menu.html" style="color: white;">
                 <img src="assets/icons/home2.jpg" alt="Library Logo" width="12%" class="d-inline-block align-text-top">
                 <span class="ms-2" style="font-size: 35px; font-weight: 500;">Night City Library</span>
             </a>
@@ -105,7 +113,7 @@
                     </div>
 
 
-                    <button onclick="loanBook()" class="btn btn-primary">Loan Book</button>
+                    <button type="button" onclick="loanBook()" class="btn btn-primary">Loan Book</button>
                 </form>
             </div>
         </div>
@@ -146,17 +154,39 @@
                     <form id="editLoanForm">
                         <input type="hidden" id="editLoanID" name="editLoanID">
                         <div class="mb-3">
-                            <label for="editCustomerID" class="form-label">Customer ID:</label>
-                            <input type="text" id="editCustomerID" name="editCustomerID" class="form-control" required>
+                            <label for="editCustomerName" class="form-label">Customer Name:</label>
+                            <select id="editCustomerName" name="editCustomerName" class="form-select" required>
+                                <!-- Options for customer names will be dynamically populated here -->
+                            </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="editBookID" class="form-label">Book ID:</label>
-                            <input type="text" id="editBookID" name="editBookID" class="form-control" required>
+                            <label for="editBookName" class="form-label">Book Name:</label>
+                            <select id="editBookName" name="editBookName" class="form-select" required>
+                                <!-- Options for book names will be dynamically populated here -->
+                            </select>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Update Loan</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this loan?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                 </div>
             </div>
         </div>
@@ -171,42 +201,45 @@
 
 
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function getCustomers() {
         const accessToken = sessionStorage.getItem('access_token');
         // Fetch and display customers in the dropdown
         axios.get(`${MY_SERVER}/customers`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
             .then(response => {
                 const customers = response.data.customers;
                 const customerDropdown = document.getElementById('customerName');
                 customers.forEach(function (customer) {
                     const option = document.createElement('option');
                     option.value = customer.Id;
-                    option.text = `${customer.Name} (${customer.City}) - Age: ${customer.Age}`;
+                    option.text = `${customer.Name} (${customer.Username}) - City: ${customer.City} - Age: ${customer.Age}`;
                     customerDropdown.add(option);
                 });
             })
             .catch(error => {
                 console.error('Error fetching customers:', error);
             });
-
+    }
+    function getBooks() {
+        const accessToken = sessionStorage.getItem('access_token');
         // Fetch and display books in the dropdown
         axios.get(`${MY_SERVER}/books`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
             .then(response => {
                 const books = response.data.books;
                 const bookDropdown = document.getElementById('bookName');
+
                 books.forEach(book => {
                     bookType = 0;
-                        if (book.Type == 1) {
-                            bookType = 10;
-                        } else if (book.Type == 2) {
-                            bookType = 5;
-                        } else if (book.Type == 3) {
-                            bookType = 2;
-                        }
+                    if (book.Type == 1) {
+                        bookType = 10;
+                    } else if (book.Type == 2) {
+                        bookType = 5;
+                    } else if (book.Type == 3) {
+                        bookType = 2;
+                    }
                     const option = document.createElement('option');
                     option.value = book.Id;
                     option.text = `${book.Name} by ${book.Author} (${book.YearPublished}) - Loan Duration: ${bookType} Days`;
@@ -217,33 +250,37 @@
             .catch(error => {
                 console.error('Error fetching books:', error);
             });
+    }
+    getCustomers();
+    getBooks();
+    // Handle form submission for loaning a book
+    // const loanForm = document.getElementById('loanForm');
+    // loanForm.addEventListener('submit', function (event) {
+    //     event.preventDefault();
 
-        // Handle form submission for loaning a book
-        const loanForm = document.getElementById('loanForm');
-        loanForm.addEventListener('submit', function (event) {
-            event.preventDefault();
+    //     const customerID = document.getElementById('customerName').value;
+    //     const bookID = document.getElementById('bookName').value;
 
-            const customerID = document.getElementById('customerName').value;
-            const bookID = document.getElementById('bookName').value;
-            const returnDate = document.getElementById('returnDate').value;
+    //     axios.post(`${MY_SERVER}/loans`, { customerID, bookID }, {
+    //         headers: { 'Authorization': `Bearer ${accessToken}` }
+    //     })
+    //         .then(response => {
+    //             console.log('Loan added successfully');
+    //             getLoans();
+    //         })
+    //         .catch(error => {
+    //             console.error('Error adding loan:', error);
+    //         });
 
-            // Perform the loaning logic here (you need to implement this)
-
-            // After successful loaning, you may want to clear the form or show a success message
-            loanForm.reset();
-            showToast('Book loaned successfully!', 'success');
-        });
-
-        // Load and display current loans
-        loadLoans();
-    });
-
-    // Function to load and display current loans
-    function loadLoans() {
+    //     // After successful loaning, you may want to clear the form or show a success message
+    //     loanForm.reset();
+    //     showToast('Book loaned successfully!', 'success');
+    // });
+    function getLoans() {
         const accessToken = sessionStorage.getItem('access_token');
         axios.get(`${MY_SERVER}/loans`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            })
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
             .then(response => {
                 const loans = response.data.loans;
                 loans.sort((a, b) => b.Id - a.Id);
@@ -252,20 +289,237 @@
 
                 loans.forEach(loan => {
                     const row = loanTableBody.insertRow();
-                    row.innerHTML = `
-                    <td>${loan.customerName}</td>
-                    <td>${loan.bookName}</td>
-                    <td>${loan.Returndate}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
-                    </td>
-                `;
+
+                    // Convert Return Date to a Date object
+                    const returnDate = new Date(loan.Returndate);
+                    console.log(returnDate);
+                    const IL_Date = formatDate(loan.Returndate);
+
+                    // Check if the loan is overdue
+                    if (returnDate < new Date()) {
+                        row.classList.add('overdue-loan');
+                        // Apply a CSS class for overdue loans
+                        row.innerHTML = `
+                            <td class="overdue-loan">${loan.customerName} (${loan.userName})</td>
+                            <td class="overdue-loan">${loan.bookName}</td>
+                            <td class="overdue-loan">${IL_Date} LATE</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
+                                <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
+                            </td>
+                        `;
+                    } else {
+                        // If not overdue, add the row without the overdue-loan class
+                        row.innerHTML = `
+                            <td>${loan.customerName} (${loan.userName})</td>
+                            <td>${loan.bookName}</td>
+                            <td>${IL_Date}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
+                                <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
+                            </td>
+                        `;
+                    }
                 });
             })
             .catch(error => {
                 console.error('Error fetching loans:', error);
             });
+    }
+
+    getLoans();
+
+    // Function to change the date format from YYYY-MM-DD to DD-MM-YYYY
+    function formatDate(dateString) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}-${month}-${year}`;
+    }
+
+    // function to add a loan
+    function loanBook() {
+        // This prevents the default form submission if the button is of type "submit"
+        event.preventDefault();
+
+        // Retrieve the selected values from dropdowns
+        const Customer_ID = document.getElementById('customerName').value;
+        const Book_ID = document.getElementById('bookName').value;
+
+        // Retrieve the access token from session storage
+        const accessToken = sessionStorage.getItem('access_token');
+
+        // Make a POST request to the server to create a loan
+        axios.post(`${MY_SERVER}/loans`, { BookID: Book_ID, CustomerID: Customer_ID }, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+            .then(response => {
+
+                getLoans(); // Refresh the list of loans
+                Toastify({
+                    text: 'Loan added successfully.',
+                    gravity: "top",
+                    position: "center",
+                    duration: 7000,
+                    style: {
+                        background: "linear-gradient(to right, #00b09b, #96c93d)"
+                    },
+                }).showToast();
+                console.log('Loan added successfully:', response.data);
+            })
+            .catch(error => {
+                if (error.response.status === 409 && error.response.data.message === 'A loan for this book already exists') {
+                    Toastify({
+                        text: 'A loan for this book already exists.',
+                        gravity: "top",
+                        position: "center",
+                        duration: 7000,
+                        style: {
+                            background: "linear-gradient(to right, #ff4b2b, #ff416c)"
+                        },
+                    }).showToast();
+                }
+                else {
+                    console.error('Error adding loan:', error);
+                }
+            });
+
+    }
+
+
+    // // Function to edit a loan
+    // function editLoan(loanId) {
+    //     const accessToken = sessionStorage.getItem('access_token');
+    //     axios.get(`${MY_SERVER}/loans/${loanId}`, {
+    //         headers: { 'Authorization': `Bearer ${accessToken}` }
+    //     })
+    //         .then(response => {
+    //             const loan = response.data.loan;
+    //             document.getElementById('editCustomerID').value = loan.customerId;
+    //             document.getElementById('editBookID').value = loan.bookId;
+    //             document.getElementById('editLoanId').value = loanId;
+    //         })
+    //         .catch(error => {
+    //             console.error('Error fetching loan:', error);
+    //         });
+    // }
+
+    // Function to edit a loan
+    function editLoan(loanId) {
+        const accessToken = sessionStorage.getItem('access_token');
+        axios.get(`${MY_SERVER}/loans/${loanId}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+            .then(response => {
+                const loan = response.data.loan;
+
+                // Populate the modal form fields with loan data
+                document.getElementById('editLoanID').value = loanId;
+
+                // Use the getCustomers and getBooks functions to populate dropdowns in the edit form
+                getCustomersForEditForm(loan.customerId);
+                getBooksForEditForm(loan.bookId);
+
+                // Show the edit loan modal
+                const editLoanModal = new bootstrap.Modal(document.getElementById('editLoanModal'));
+                editLoanModal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching loan:', error);
+            });
+    }
+
+    // Function to get customers for the edit form dropdown
+    function getCustomersForEditForm(selectedCustomerId) {
+        const accessToken = sessionStorage.getItem('access_token');
+        axios.get(`${MY_SERVER}/customers`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+            .then(response => {
+                const customers = response.data.customers;
+                const customerDropdown = document.getElementById('editCustomerName');
+                customerDropdown.innerHTML = ''; // Clear existing options
+
+                customers.forEach(function (customer) {
+                    const option = document.createElement('option');
+                    option.value = customer.Id;
+                    option.text = `${customer.Name} (${customer.Username}) - City: ${customer.City} - Age: ${customer.Age}`;
+                    // Set the selected attribute for the option matching the loan's customer
+                    option.selected = customer.Id === selectedCustomerId;
+                    customerDropdown.add(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching customers:', error);
+            });
+    }
+
+    // Function to get books for the edit form dropdown
+    function getBooksForEditForm(selectedBookId) {
+        const accessToken = sessionStorage.getItem('access_token');
+        axios.get(`${MY_SERVER}/books`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+            .then(response => {
+                const books = response.data.books;
+                const bookDropdown = document.getElementById('editBookName');
+                bookDropdown.innerHTML = ''; // Clear existing options
+
+                books.forEach(book => {
+                    bookType = 0;
+                    if (book.Type == 1) {
+                        bookType = 10;
+                    } else if (book.Type == 2) {
+                        bookType = 5;
+                    } else if (book.Type == 3) {
+                        bookType = 2;
+                    }
+                    const option = document.createElement('option');
+                    option.value = book.Id;
+                    option.text = `${book.Name} by ${book.Author} (${book.YearPublished}) - Loan Duration: ${bookType} Days`;
+                    option.title = `Can be loaned for ${bookType} Days`;
+                    // Set the selected attribute for the option matching the loan's book
+                    option.selected = book.Id === selectedBookId;
+                    bookDropdown.add(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+            });
+    }
+
+    // Function to delete a loan
+    function deleteLoan(loanId) {
+        // Display a delete confirmation dialog
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        confirmationModal.show();
+        function confirmDelete() {
+            const accessToken = sessionStorage.getItem('access_token');
+            axios.delete(`${MY_SERVER}/loans/${loanId}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    Toastify({
+                        text: 'Loan deleted successfully.',
+                        gravity: "top",
+                        position: "center",
+                        duration: 7000,
+                        style: {
+                            background: "linear-gradient(to right, #e8a400, #ffc257)"
+                        },
+                    }).showToast();
+                    console.log('Loan deleted successfully:', response.data);
+                    getLoans();
+                })
+                .catch(error => {
+                    console.error('Error deleting loan:', error);
+                });
+            confirmationModal.hide();
+        };
+        document.getElementById('confirmDelete').onclick = confirmDelete;
+    }
+
+    function logout() {
+        sessionStorage.removeItem('access_token');
+        window.location.href = 'login.html?logout=true';
     }
 
 
