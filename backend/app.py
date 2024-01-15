@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -330,8 +330,12 @@ class CustomerResource(Resource):
             else:
                 return {'message': 'Customer not found'}, 404
         else:
-            customers = Customer.query.all()  # Get all customers
             customers_data = []
+            if 'search' in request.args:
+                search_query = request.args.get('search').strip()
+                customers = Customer.query.filter(Customer.Name.ilike(f'%{search_query}%')).all()
+            else:
+                customers = Customer.query.all()  # Get all customers
 
             for customer in customers:
                 user = User.query.filter_by(CustomerID=customer.Id).first()

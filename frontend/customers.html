@@ -135,6 +135,10 @@
             <div class="card-header">
                 <h3>Customer List</h3>
             </div>
+            <div class="col-md-11 mt-3 mx-auto">
+                <label for="searchCustomer" class="form-label">Search Customer by Name:</label>
+                <input type="text" id="searchCustomer" class="form-control" oninput="searchCustomers()">
+            </div>
             <div class="card-body" id="customersDisplay"></div>
         </div>
     </div>
@@ -202,16 +206,32 @@
         const editCustomerModal = new bootstrap.Modal(document.getElementById('editCustomerModal'));
 
         // GET all customers
-        function fetchCustomers() {
+        function fetchCustomers(searchQuery) {
             const accessToken = sessionStorage.getItem('access_token');
-            axios.get(`${MY_SERVER}/customers`, {
+
+            let apiUrl = `${MY_SERVER}/customers`;
+
+            if (searchQuery) {
+                apiUrl += `?search=${searchQuery}`;
+            }
+
+            axios.get(apiUrl, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
-                    const customers = response.data.customers;
+                    const responseData = response.data;
+                    console.log(responseData);
+
+                    const customers = responseData && responseData.customers ? responseData.customers : [];
+
                     // Sort customers by Id in descending order (newest at the top)
                     customers.sort((a, b) => b.Id - a.Id);
                     const customersDiv = document.getElementById('customersDisplay');
+
+                    if (!customersDiv) {
+                        console.error("Element with ID 'customersDisplay' not found");
+                        return;
+                    }
                     customersDiv.innerHTML = '';
 
                     customers.forEach(function (customer) {
@@ -270,6 +290,50 @@
                     console.error('Error fetching customers:', error);
                 });
         }
+
+        function searchCustomers() {
+            const searchQuery = document.getElementById('searchCustomer').value.trim();
+            fetchCustomers(searchQuery);
+        }
+
+
+
+        // ?? fetchCustomers with search function but it wants to update the existing one?
+        // function fetchCustomers(searchQuery) {
+        //     const accessToken = sessionStorage.getItem('access_token');
+
+        //     let apiUrl = `${MY_SERVER}/customers`;
+
+        //     if (searchQuery) {
+        //         apiUrl += `?search=${searchQuery}`;
+        //     }
+
+        //     axios.get(apiUrl, {
+        //         headers: { 'Authorization': `Bearer ${accessToken}` }
+        //     })
+        //         .then(response => {
+        //             const customers = response.data.customers || response.data; // Handle both cases (search and regular)
+        //             const customersDiv = document.getElementById('customersDisplay');
+        //             customersDiv.innerHTML = '';
+
+        //             customers.forEach(function (customer) {
+        //                 // ... existing code ...
+        //             });
+        //         })
+        //         .catch(error => {
+        //             console.error('Error fetching customers:', error);
+        //         });
+        // }
+
+        // ?? searchCustomers function
+        // function searchCustomers() {
+        //     const searchQuery = document.getElementById('searchCustomer').value.trim();
+        //     fetchCustomers(searchQuery);
+        // }
+
+
+
+
 
         // old Customer adding function without the user
 
