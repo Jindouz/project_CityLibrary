@@ -45,18 +45,19 @@
                 <img src="assets/icons/home2.jpg" alt="Library Logo" width="12%" class="d-inline-block align-text-top">
                 <span class="ms-2" style="font-size: 35px; font-weight: 500;">Night City Library</span>
             </a>
-    
+
             <!-- Navbar Toggler (for smaller screens) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon" style="font-size: 70%;"></span>
             </button>
-    
+
             <!-- Navbar Items -->
             <div class="collapse navbar-collapse" id="navbarNav" style="background-color: #000933; padding: 10px;">
                 <ul class="navbar-nav ms-auto">
                     <div style="white-space: nowrap;">
-                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span id="displayusername"></span></h5>
+                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span
+                                id="displayusername"></span></h5>
                     </div>
                     <li class="nav-item">
                         <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
@@ -119,6 +120,10 @@
             <div class="card-header">
                 <h3>Book List</h3>
             </div>
+            <div class="col-md-11 mt-3 mx-auto">
+                <label for="searchBook" class="form-label">Search Book by Name:</label>
+                <input type="text" id="searchBook" class="form-control" oninput="searchBooks()">
+            </div>
             <div class="card-body" id="booksDisplay"></div>
         </div>
     </div>
@@ -153,15 +158,23 @@
         selectedBookId = 0;
 
         // GET all books
-        function getBooks() {
+        function getBooks(searchQuery) {
             const accessToken = sessionStorage.getItem('access_token');
 
-            axios.get(`${MY_SERVER}/books`, {
+            let apiUrl = `${MY_SERVER}/books`;
+
+            if (searchQuery) {
+                apiUrl += `?search=${searchQuery}`;
+            }
+
+            axios.get(apiUrl, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
+                    const responseData = response.data;
 
-                    const books = response.data.books;
+                    const books = responseData && responseData.books ? responseData.books : [];
+
                     // Sort books by Id in descending order (newest at the top)
                     books.sort((a, b) => b.Id - a.Id);
                     const booksDiv = document.getElementById('booksDisplay');
@@ -228,6 +241,11 @@
         }
 
         getBooks()
+
+        function searchBooks() {
+            const searchQuery = document.getElementById('searchBook').value.trim();
+            getBooks(searchQuery);
+        }
 
         function addBook() {
             const name = document.getElementById('name').value;

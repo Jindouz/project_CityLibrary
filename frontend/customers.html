@@ -220,7 +220,6 @@
             })
                 .then(response => {
                     const responseData = response.data;
-                    console.log(responseData);
 
                     const customers = responseData && responseData.customers ? responseData.customers : [];
 
@@ -228,10 +227,6 @@
                     customers.sort((a, b) => b.Id - a.Id);
                     const customersDiv = document.getElementById('customersDisplay');
 
-                    if (!customersDiv) {
-                        console.error("Element with ID 'customersDisplay' not found");
-                        return;
-                    }
                     customersDiv.innerHTML = '';
 
                     customers.forEach(function (customer) {

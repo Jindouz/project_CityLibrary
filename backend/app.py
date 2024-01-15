@@ -245,7 +245,11 @@ class BookResource(Resource):
             else:
                 return {'message': 'Book not found'}, 404
         else:
-            books = Book.query.all() # Get all books
+            if 'search' in request.args:
+                search_query = request.args.get('search').strip()
+                books = Book.query.filter(Book.Name.ilike(f'%{search_query}%')).all()
+            else:
+                books = Book.query.all() # Get all books
             books_data = [{'Id': book.Id, 'Name': book.Name, 'Author': book.Author,
                            'YearPublished': book.YearPublished, 'Type': book.Type} for book in books]
             return {'books': books_data}
