@@ -130,6 +130,7 @@
                         <tr>
                             <th>Customer Name</th>
                             <th>Book Name</th>
+                            <th>Loan Date</th>
                             <th>Return Date</th>
                             <th>Action</th>
                         </tr>
@@ -291,9 +292,13 @@
                     const row = loanTableBody.insertRow();
 
                     // Convert Return Date to a Date object
+                    const loanDate = new Date(loan.Loandate);
                     const returnDate = new Date(loan.Returndate);
-                    console.log(returnDate);
-                    const IL_Date = formatDate(loan.Returndate);
+                    // console.log(loanDate);
+                    // console.log(returnDate);
+                    const IL_loanDate = formatDate(loan.Loandate);
+                    const IL_returnDate = formatDate(loan.Returndate);
+                    
 
                     // Check if the loan is overdue
                     if (returnDate < new Date()) {
@@ -302,7 +307,8 @@
                         row.innerHTML = `
                             <td class="overdue-loan">${loan.customerName} (${loan.userName})</td>
                             <td class="overdue-loan">${loan.bookName}</td>
-                            <td class="overdue-loan">${IL_Date} LATE</td>
+                            <td class="overdue-loan">${IL_loanDate}</td>
+                            <td class="overdue-loan">${IL_returnDate} LATE</td>
                             <td>
                                 <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
                                 <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
@@ -313,7 +319,8 @@
                         row.innerHTML = `
                             <td>${loan.customerName} (${loan.userName})</td>
                             <td>${loan.bookName}</td>
-                            <td>${IL_Date}</td>
+                            <td>${IL_loanDate}</td>
+                            <td>${IL_returnDate}</td>
                             <td>
                                 <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
                                 <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
