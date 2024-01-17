@@ -206,6 +206,37 @@ class UserResource(Resource):
 
 api.add_resource(UserResource, '/user','/user/<int:user_id>')
 
+
+# User Loans by CustomerID
+class UserLoanResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = get_jwt_identity()
+        user = db.session.get(User, current_user)
+        if not user:
+            return {'message': 'User not found'}, 404
+        loans = Loan.query.filter_by(CustomerID=user.CustomerID).all()
+        loans_data = []
+        for loan in loans:
+            customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
+            book = db.session.query(Book).filter_by(Id=loan.BookID).first()
+            user = db.session.query(User).filter_by(CustomerID=loan.CustomerID).first()
+
+            customerName = customer.Name if customer else None
+            bookName = book.Name if book else None
+            userName = user.Username if user else None
+
+            loans_data.append({
+                'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
+                'Loandate': loan.Loandate.strftime('%Y-%m-%d'),
+                'Returndate': loan.Returndate.strftime('%Y-%m-%d'),
+                'customerName': customerName, 'bookName': bookName, 'userName': userName
+            })
+
+        return {'loans': loans_data}
+
+api.add_resource(UserLoanResource, '/user/loans')
+
 # =====================================
 
 
@@ -216,7 +247,7 @@ def token_expired_callback():
     return jsonify(message="Token has expired"), 401
 
 def is_admin(current_user):
-    user = User.query.get(current_user)
+    user = db.session.get(User, current_user)
     return user.is_admin
 
 # =====================================
@@ -471,7 +502,8 @@ class LoanResource(Resource):
         else:
             if not is_admin(current_user):
                 return {'message': 'Only admins can see all loans'}, 403
-            loans = Loan.query.all() # Get all loans
+
+            loans = db.session.query(Loan).all() # Get all loans
             loans_data = []
 
             for loan in loans: 
@@ -593,20 +625,6 @@ api.add_resource(LoanResource, '/loans', '/loans/<int:loan_id>')
 
 # ======================================
 
-# User Loans by CustomerID
-class UserLoanResource(Resource):
-    @jwt_required()
-    def get(self):
-        current_user = get_jwt_identity()
-        user = User.query.get(current_user)
-        loans = Loan.query.filter_by(CustomerID=user.CustomerID).all()
-        for loan in loans:
-            ic(loan.BookID) # IC logging to logger.txt
-        return loans
-
-api.add_resource(UserLoanResource, '/user/loans')
-
-
 
 # ========= Icecream logger ============
 def write_to_file(*args):
@@ -616,7 +634,6 @@ def write_to_file(*args):
 
 ic.configureOutput(outputFunction=write_to_file)
 # ======================================
-
 
 
 

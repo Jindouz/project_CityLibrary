@@ -333,3 +333,23 @@ ic| data['Username']: '2', 'logged in successfully'
 17-01-2024 15:18:51 | ic| current_user: 5, 'used Loans DELETE.'
 17-01-2024 15:27:45 | ic| data['Username']: 'waga1', 'logged in successfully'
 17-01-2024 15:34:39 | ic| data['Username']: 'waga1', 'logged in successfully'
+17-01-2024 15:45:53 | ic| data['Username']: 'user1', 'logged in successfully'
+17-01-2024 15:48:36 | ic| data['Username']: 'waga1', 'logged in successfully'
+17-01-2024 16:05:49 | ic| data['Username']: '1', 'logged in successfully'
+17-01-2024 16:06:43 | ic| data['Username']: 'user1', 'logged in successfully'
+17-01-2024 16:15:13 | ic| loan.BookID: 4
+17-01-2024 16:15:13 | ic| loan.BookID: 15
+17-01-2024 16:15:13 | ic| loan.BookID: 6
+17-01-2024 16:15:13 | ic| loan.BookID: 20
+17-01-2024 16:15:13 | ic| loan.BookID: 17
+17-01-2024 16:15:33 | ic| loan.BookID: 4
+17-01-2024 16:15:33 | ic| loan.BookID: 15
+17-01-2024 16:15:33 | ic| loan.BookID: 6
+17-01-2024 16:15:33 | ic| loan.BookID: 20
+17-01-2024 16:15:33 | ic| loan.BookID: 17
+17-01-2024 16:19:10 | ic| data['Username']: 'waga1', 'logged in successfully'
+17-01-2024 16:21:27 | ic| loan.BookID: 4
+17-01-2024 16:21:27 | ic| loan.BookID: 15
+17-01-2024 16:21:27 | ic| loan.BookID: 6
+17-01-2024 16:21:27 | ic| loan.BookID: 20
+17-01-2024 16:21:27 | ic| loan.BookID: 17
