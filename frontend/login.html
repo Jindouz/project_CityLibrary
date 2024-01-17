@@ -23,9 +23,11 @@
             background-repeat: no-repeat;
             height: 110px;
         }
+
         .navbar-brand img {
             margin-right: 10px;
         }
+
         #adminButtons {
             display: flex;
             justify-content: flex-end;
@@ -156,6 +158,16 @@
                 },
             }).showToast();
         }
+
+        // An event listener for the Enter key as an alternative to the login button (not using Submit)
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                // Check if the active element is the username and password input fields
+                if (document.activeElement.tagName === 'INPUT') {
+                    login();
+                }
+            }
+        });
     </script>
 </body>
 
