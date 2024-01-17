@@ -456,9 +456,10 @@ class LoanResource(Resource):
             if loan:
                 customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
                 book = db.session.query(Book).filter_by(Id=loan.BookID).first()
-                user = db.session.query(User).filter_by(Id=loan.CustomerID).first()
+                user = db.session.query(User).filter_by(CustomerID=loan.CustomerID).first()
                 customerName = customer.Name if customer else None
                 bookName = book.Name if book else None # Get customer name and book name if they exist else set them to None (for debug)
+                userName = user.Username if user else None
                 loan_data = {'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
                              'Loandate': loan.Loandate.strftime('%Y-%m-%d'),
                              'Returndate': loan.Returndate.strftime('%Y-%m-%d'),
@@ -468,6 +469,8 @@ class LoanResource(Resource):
             else:
                 return {'message': 'Loan not found'}, 404
         else:
+            if not is_admin(current_user):
+                return {'message': 'Only admins can see all loans'}, 403
             loans = Loan.query.all() # Get all loans
             loans_data = []
 
@@ -492,9 +495,9 @@ class LoanResource(Resource):
         data = loan_parser.parse_args()
 
         # if not is_admin(current_user):
-        #     return {'message': 'Only admins can add books'}, 403
+        #     return {'message': 'Only admins can add loans'}, 403
         
-        # Convert the date strings to Python date objects
+        # Assign the current date to the 'Loandate' field
         data['Loandate'] = datetime.now().date()
 
         # Check if the customer with the given CustomerID exists
@@ -510,7 +513,7 @@ class LoanResource(Resource):
         # Calculate the return date based on the book type by calling the calculate_return_date function
         data['Returndate'] = calculate_return_date(book.Type)
 
-        # Check if a loan with the same BookID and CustomerID already exists
+        # Check if a loan with the same BookID already exists
         existing_loan = Loan.query.filter_by(BookID=data['BookID']).first()
         if existing_loan:
             return {'message': 'A loan for this book already exists'}, 409  # Conflict
@@ -530,12 +533,14 @@ class LoanResource(Resource):
     @jwt_required()
     def put(self, loan_id):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can edit loans'}, 403
         loan = db.session.get(Loan, loan_id)
         if loan:
             data = loan_parser.parse_args()
             
-            # Convert the date strings to Python date objects
-            data['Loandate'] = datetime.strptime(data['Loandate'], '%d-%m-%Y').date()
+            # Assign the current date to the 'Loandate' field
+            data['Loandate'] = datetime.now().date()
 
             # Check if the customer with the given CustomerID exists
             customer = db.session.get(Customer, data['CustomerID'])
@@ -547,18 +552,13 @@ class LoanResource(Resource):
             if not book:
                 return {'message': 'Book not found'}, 404
 
-            # Check if the updated combination of CustomerID and BookID already exists
-            existing_loan = Loan.query.filter(
-                Loan.Id != loan_id,
-                Loan.CustomerID == data['CustomerID'],
-                Loan.BookID == data['BookID']
-            ).first()
-
-            if existing_loan:
-                return {'message': 'Cannot update: This book is already loaned to the same customer'}, 409  # Conflict
-
             # Calculate the return date based on the book type
             data['Returndate'] = calculate_return_date(book.Type)
+
+            # Check if a loan with the same BookID already exists
+            existing_loan = Loan.query.filter_by(BookID=data['BookID']).first()
+            if existing_loan:
+                return {'message': 'A loan for this book already exists'}, 409  # Conflict
 
             # Update the specified attributes
             loan.CustomerID = data['CustomerID']

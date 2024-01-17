@@ -100,6 +100,7 @@ in loans GET (back function) can do it both ways:
 customer = db.session.query(Customer).filter_by(Id=loan.CustomerID).first()
 book = db.session.query(Book).filter_by(Id=loan.BookID).first()
 
+make toastify functions with multiple parameters for msg, time and color to reduce code length?
 
 
 fixed - loans username is bugged, shows the wrong user (fixed by using .first() on the filter)
