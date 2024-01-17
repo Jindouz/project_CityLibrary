@@ -302,7 +302,7 @@
                             <td class="overdue-loan">${loan.bookName}</td>
                             <td class="overdue-loan">${IL_loanDate}</td>
                             <td class="overdue-loan">${IL_returnDate} LATE</td>
-                            <td>
+                            <td style="text-align: center;">
                                 <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
                                 <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
                             </td>
@@ -314,7 +314,7 @@
                             <td>${loan.bookName}</td>
                             <td>${IL_loanDate}</td>
                             <td>${IL_returnDate}</td>
-                            <td>
+                            <td style="text-align: center;">
                                 <button class="btn btn-danger btn-sm" onclick="deleteLoan(${loan.Id})">Delete</button>
                                 <button class="btn btn-warning btn-sm" onclick="editLoan(${loan.Id})">Edit</button>
                             </td>
@@ -353,15 +353,7 @@
             .then(response => {
 
                 getLoans(); // Refresh the list of loans
-                Toastify({
-                    text: 'Loan added successfully.',
-                    gravity: "top",
-                    position: "center",
-                    duration: 7000,
-                    style: {
-                        background: "linear-gradient(to right, #00b09b, #96c93d)"
-                    },
-                }).showToast();
+                toastifyMessages('Loan added successfully.', "linear-gradient(to right, #00b09b, #96c93d)", 7000);
                 console.log('Loan added successfully:', response.data);
             })
             .catch(error => {

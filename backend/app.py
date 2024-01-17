@@ -207,7 +207,7 @@ class UserResource(Resource):
 api.add_resource(UserResource, '/user','/user/<int:user_id>')
 
 
-# User Loans by CustomerID
+# User Loans by ID
 class UserLoanResource(Resource):
     @jwt_required()
     def get(self):
@@ -234,8 +234,73 @@ class UserLoanResource(Resource):
             })
 
         return {'loans': loans_data}
+    
+    @jwt_required()
+    def post(self):
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, current_user_id)
+        if not user:
+            return {'message': 'User not found'}, 404
+        # Customize this logic based on your requirements for regular users
+        data = loan_parser.parse_args()
 
-api.add_resource(UserLoanResource, '/user/loans')
+        # Assign the current date to the 'Loandate' field
+        data['Loandate'] = datetime.now().date()
+
+        # For regular users, associate the loan with the current user
+        data['CustomerID'] = user.CustomerID
+        # You might want to set other fields based on your requirements
+
+        # Check if the book with the given BookID exists
+        book = db.session.get(Book, data['BookID'])
+        if not book:
+            return {'message': 'Book not found'}, 404
+
+        # Calculate the return date based on the book type by calling the calculate_return_date function
+        data['Returndate'] = calculate_return_date(book.Type)
+
+        # Check if a loan with the same BookID already exists
+        existing_loan = Loan.query.filter_by(BookID=data['BookID']).first()
+        if existing_loan:
+            return {'message': 'A loan for this book already exists'}, 409  # Conflict
+
+        # Associate the loan with the customer (current user)
+        new_loan = Loan(**data)
+
+        try:
+            db.session.add(new_loan)
+            db.session.commit()
+
+            response_data = {'message': 'Book loaned successfully', 'BookID': data['BookID'], 'CustomerID': user.CustomerID}
+            ic(current_user_id, "has loaned a book.")  # IC logging to logger.txt
+            return response_data, 201
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Error creating loan: {str(e)}'}, 500
+        
+    @jwt_required()
+    def delete(self, loan_id):
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, current_user_id)
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        loan = Loan.query.get(loan_id)
+        if not loan:
+            return {'message': 'Loan not found'}, 404
+
+        # You may want to add additional checks here, e.g., if the loan belongs to the current user
+
+        try:
+            db.session.delete(loan)
+            db.session.commit()
+            return {'message': 'Loan returned successfully'}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Error returning loan: {str(e)}'}, 500
+
+
+api.add_resource(UserLoanResource, '/user/loans', '/user/loans/<int:loan_id>')
 
 # =====================================
 
@@ -469,7 +534,7 @@ def calculate_return_date(book_type):
 
 # Request parser for handling incoming JSON data
 loan_parser = reqparse.RequestParser()
-loan_parser.add_argument('CustomerID', type=int, required=True, help='CustomerID cannot be blank')
+loan_parser.add_argument('CustomerID', type=int, required=False)
 loan_parser.add_argument('BookID', type=int, required=True, help='BookID cannot be blank')
 loan_parser.add_argument('Loandate', type=str, required=False)
 loan_parser.add_argument('Returndate', type=str, required=False)
@@ -500,9 +565,6 @@ class LoanResource(Resource):
             else:
                 return {'message': 'Loan not found'}, 404
         else:
-            if not is_admin(current_user):
-                return {'message': 'Only admins can see all loans'}, 403
-
             loans = db.session.query(Loan).all() # Get all loans
             loans_data = []
 
@@ -528,7 +590,10 @@ class LoanResource(Resource):
 
         # if not is_admin(current_user):
         #     return {'message': 'Only admins can add loans'}, 403
-        
+            # Input Validation
+        if 'CustomerID' not in data or 'BookID' not in data:
+            return {'message': 'CustomerID and BookID are required fields'}, 400  # Bad Request
+
         # Assign the current date to the 'Loandate' field
         data['Loandate'] = datetime.now().date()
 
@@ -549,6 +614,7 @@ class LoanResource(Resource):
         existing_loan = Loan.query.filter_by(BookID=data['BookID']).first()
         if existing_loan:
             return {'message': 'A loan for this book already exists'}, 409  # Conflict
+        
         new_loan = Loan(**data)
 
         try:

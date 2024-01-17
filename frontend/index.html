@@ -1,5 +1,3 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 
@@ -39,6 +37,23 @@
             /* Red text color */
             /* Add any other styles for overdue loans */
         }
+
+        .available-loan {
+            background-color: #4b9b4b !important;
+            text-align: center !important;
+        }
+
+        .unavailable-loan {
+            background-color: #9b4b4b !important;
+            text-align: center !important;
+        }
+
+        .loan-table th,
+        .loan-table td {
+            border-right: 1px solid #5c5c5c !important;
+            border-left: 1px solid #5c5c5c !important;
+            border-top: 1px solid #5c5c5c !important;
+        }
     </style>
 </head>
 
@@ -75,42 +90,20 @@
 
 
     <div class="text-center">
-        <div class="mt-3" style="display: flex; justify-content: space-between;">
-            <h3>Welcome <span id="displayname"></span>!</h3>
-            <div id="adminButtons" style="margin-right: 10px;"></div>
+        <div class="mt-3" style="display: flex;">
+            <div id="adminButtons" style="margin-right: 10px; margin-left: auto;"></div>
         </div>
     </div>
 
-    <h3 class="mt-4" style="text-align: center;">Book Loaning Service</h3>
-    <br>
-
-
-    <div class="row justify-content-center">
-        <div class="card col-md-5">
-            <div class="card-header">
-                <h3>Loan a Book</h3>
-            </div>
-            <div class="card-body">
-                <form id="loanForm">
-                    <div class="mb-3">
-                        <label for="bookName" class="form-label">Book Name:</label>
-                        <select id="bookName" name="bookName" class="form-select" required>
-                            <!-- Options for book names will be dynamically populated here -->
-                        </select>
-                    </div>
-                    <button type="button" onclick="loanBook()" class="btn btn-primary">Loan Book</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <h3 class="mt-4" style="text-align: center;">Welcome <span id="displayname"></span>!</h3>
 
     <div class="row mt-4">
-        <div class="card col-md-10 mx-auto">
+        <div class="card col-md-8 mx-auto">
             <div class="card-header">
                 <h3>Your Current Loans</h3>
             </div>
             <div class="card-body">
-                <table class="table table-striped table-responsive">
+                <table class="table table-striped table-responsive loan-table">
                     <thead>
                         <tr>
                             <th>Book Name</th>
@@ -127,8 +120,6 @@
         </div>
     </div>
 
-
-
     <br>
 
     <div class="row mt-4">
@@ -137,11 +128,12 @@
                 <h3>Available Books</h3>
             </div>
             <div class="card-body">
-                <table class="table table-striped table-responsive">
+                <table class="table table-striped table-responsive loan-table">
                     <thead>
                         <tr>
                             <th>Book Name</th>
                             <th>Loan Duration</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -152,44 +144,6 @@
             </div>
         </div>
     </div>
-
-
-    <!-- <div class="row mt-4"> -->
-    <!-- <div class="card col-md-5">
-            <div class="card-header" id="addBookSection">
-                <h3>Loan a Book</h3>
-            </div>
-            <div class="card-body">
-                <form id="addBookForm">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Book:</label>
-                        <input type="text" id="name" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="type" class="form-label">Loan Duration (Type):</label>
-                        <select id="type" name="type" class="form-select" required>
-                            <option value="1">10 Days</option>
-                            <option value="2">5 Days</option>
-                            <option value="3">2 Days</option>
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="addBook()">Add Book</button>
-                    <button type="button" class="btn btn-primary" onclick="editBookForm()">Save Edited Book</button>
-                    <button type="button" class="btn btn-warning" onclick="clearFields()">Clear Fields</button>
-
-                </form>
-            </div>
-        </div> -->
-
-    <!-- Book List Section -->
-    <!-- <div class="card col-md-10 mx-auto">
-            <div class="card-header">
-                <h3>Available Books</h3>
-            </div>
-            <div class="card-body" id="booksDisplay"></div>
-        </div> -->
-    <!-- </div>
-    </div> -->
 
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -207,26 +161,53 @@
 
                     const books = response.data.books;
                     books.sort((a, b) => b.Id - a.Id);
+
                     const booksDiv = document.getElementById('booksDisplay');
-                    booksDiv.innerHTML = '';
-                    books.forEach(book => {
-                        let bookType = 0;
-                        if (book.Type == 1) {
-                            bookType = 10;
-                        } else if (book.Type == 2) {
-                            bookType = 5;
-                        } else if (book.Type == 3) {
-                            bookType = 2;
-                        }
-                        const row = booksDiv.insertRow();
-                        row.innerHTML = `
-                        <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
-                        <td>${bookType} Days</td>
-                        <td>
-                            <button class="btn btn-primary btn-sm" onclick="loanBook(${loan.Id}))">Loan</button>
-                        </td>
-                    `;
-                    });
+                    // Nested axios call to get loans data for status availability in the Available Books section
+                    axios.get(`${MY_SERVER}/loans`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
+                    })
+                        .then(loansResponse => {
+                            const loans = loansResponse.data.loans;
+
+                            booksDiv.innerHTML = '';
+                            books.forEach(book => {
+                                let bookType = 0;
+                                if (book.Type == 1) {
+                                    bookType = 10;
+                                } else if (book.Type == 2) {
+                                    bookType = 5;
+                                } else if (book.Type == 3) {
+                                    bookType = 2;
+                                }
+                                // Check if the book is in the current loans using the loans data
+                                const isBookLoaned = loans.some(loan => loan.BookID === book.Id);
+                                const row = booksDiv.insertRow();
+                                if (isBookLoaned) {
+                                    row.innerHTML = `
+                                <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
+                                <td>${bookType} Days</td>
+                                <th class="unavailable-loan">Loaned</th>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="loanBook(${book.Id})">Loan</button>
+                                </td>
+                                `;
+                                }
+                                else {
+                                    row.innerHTML = `
+                                <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
+                                <td>${bookType} Days</td>
+                                <th class="available-loan">Available</th>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="loanBook(${book.Id})">Loan</button>
+                                </td>
+                                `;
+                                }
+                            });
+                        })
+                        .catch(loansError => {
+                            console.error('Error fetching loans:', loansError);
+                        });
                 })
                 .catch(error => {
                     console.error('Error fetching books:', error);
@@ -269,7 +250,7 @@
                         <td>
                             <button class="btn btn-danger btn-sm" onclick="returnLoan(${loan.Id})">Return</button>
                         </td>
-                    `;
+                        `;
                         } else {
                             // If not overdue, add the row without the overdue-loan class
                             row.innerHTML = `
@@ -279,7 +260,7 @@
                         <td>
                             <button class="btn btn-danger btn-sm" onclick="returnLoan(${loan.Id})">Return</button>
                         </td>
-                    `;
+                        `;
                         }
                     });
                 })
@@ -295,32 +276,17 @@
             return `${day}-${month}-${year}`;
         }
 
-        function loanBook(loanId) {
-            event.preventDefault();
-
-            // Retrieve the selected values from dropdowns
-            const Customer_ID = document.getElementById('customerName').value;
-            const Book_ID = document.getElementById('bookName').value;
-
-            // Retrieve the access token from session storage
+        function loanBook(bookId) {
             const accessToken = sessionStorage.getItem('access_token');
-
             // Make a POST request to the server to create a loan
-            axios.post(`${MY_SERVER}/loans`, { BookID: Book_ID, CustomerID: Customer_ID }, {
+            axios.post(`${MY_SERVER}/user/loans`, { BookID: bookId }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
 
-                    getLoans(); // Refresh the list of loans
-                    Toastify({
-                        text: 'Loan added successfully.',
-                        gravity: "top",
-                        position: "center",
-                        duration: 7000,
-                        style: {
-                            background: "linear-gradient(to right, #00b09b, #96c93d)"
-                        },
-                    }).showToast();
+                    getLoans();
+                    getBooks();
+                    toastifyMessages('Book loaned successfully.', "linear-gradient(to right, #00b09b, #96c93d)", 7000);
                     console.log('Loan added successfully:', response.data);
                 })
                 .catch(error => {
@@ -334,9 +300,39 @@
 
         }
 
+        function returnLoan(loanId) {
+            const accessToken = sessionStorage.getItem('access_token');
+
+            // Make a DELETE request to the server to return the loan
+            axios.delete(`${MY_SERVER}/user/loans/${loanId}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    getLoans();
+                    getBooks();
+                    toastifyMessages('Book returned successfully.', "linear-gradient(to right, #00b09b, #96c93d)", 7000);
+                    console.log('Loan returned successfully:', response.data);
+                })
+                .catch(error => {
+                    console.error('Error returning loan:', error);
+                });
+        }
+
         function logout() {
             sessionStorage.removeItem('access_token');
             window.location.href = 'login.html?logout=true';
+        }
+
+        function toastifyMessages(toastText, toastColor, toastDuration) {
+            Toastify({
+                text: toastText,
+                gravity: "top",
+                position: "center",
+                duration: toastDuration,
+                style: {
+                    background: toastColor
+                },
+            }).showToast();
         }
 
         // Function to get the current user to check for login and welcome message
