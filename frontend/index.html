@@ -23,8 +23,21 @@
             background-repeat: no-repeat;
             height: 110px;
         }
+
         .navbar-brand img {
             margin-right: 10px;
+        }
+
+        .card {
+            margin-top: 10px;
+        }
+
+        .overdue-loan {
+            background-color: #e04b4b !important;
+            /* Light red background */
+            color: #ffffff !important;
+            /* Red text color */
+            /* Add any other styles for overdue loans */
         }
     </style>
 </head>
@@ -38,18 +51,19 @@
                 <img src="assets/icons/home2.jpg" alt="Library Logo" width="12%" class="d-inline-block align-text-top">
                 <span class="ms-2" style="font-size: 35px; font-weight: 500;">Night City Library</span>
             </a>
-    
+
             <!-- Navbar Toggler (for smaller screens) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon" style="font-size: 70%;"></span>
             </button>
-    
+
             <!-- Navbar Items -->
             <div class="collapse navbar-collapse" id="navbarNav" style="background-color: #000933; padding: 10px;">
                 <ul class="navbar-nav ms-auto">
                     <div style="white-space: nowrap;">
-                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span id="displayusername"></span></h5>
+                        <h5 style="margin-right: 20px; display: inline-block;">Logged in as <span
+                                id="displayusername"></span></h5>
                     </div>
                     <li class="nav-item">
                         <button type="button" class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
@@ -67,10 +81,81 @@
         </div>
     </div>
 
-    <h3 class="mt-4" style="text-align: center;">Customer Book Manager:</h3>
+    <h3 class="mt-4" style="text-align: center;">Book Loaning Service</h3>
     <br>
+
+
     <div class="row justify-content-center">
         <div class="card col-md-5">
+            <div class="card-header">
+                <h3>Loan a Book</h3>
+            </div>
+            <div class="card-body">
+                <form id="loanForm">
+                    <div class="mb-3">
+                        <label for="bookName" class="form-label">Book Name:</label>
+                        <select id="bookName" name="bookName" class="form-select" required>
+                            <!-- Options for book names will be dynamically populated here -->
+                        </select>
+                    </div>
+                    <button type="button" onclick="loanBook()" class="btn btn-primary">Loan Book</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="card col-md-10 mx-auto">
+            <div class="card-header">
+                <h3>Your Current Loans</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Loan Date</th>
+                            <th>Return Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loanTableBody">
+                        <!-- Loan data will be displayed here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <br>
+
+    <div class="row mt-4">
+        <div class="card col-md-8 mx-auto">
+            <div class="card-header">
+                <h3>Available Books</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Loan Duration</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booksDisplay">
+                        <!-- Book data will be displayed here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- <div class="row mt-4"> -->
+    <!-- <div class="card col-md-5">
             <div class="card-header" id="addBookSection">
                 <h3>Loan a Book</h3>
             </div>
@@ -94,88 +179,160 @@
 
                 </form>
             </div>
-        </div>
+        </div> -->
 
-        <!-- Book List Section -->
-        <div class="card col-md-5">
+    <!-- Book List Section -->
+    <!-- <div class="card col-md-10 mx-auto">
             <div class="card-header">
-                <h3>Book List</h3>
+                <h3>Available Books</h3>
             </div>
             <div class="card-body" id="booksDisplay"></div>
-        </div>
-    </div>
-    </div>
+        </div> -->
+    <!-- </div>
+    </div> -->
 
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
 
         MY_SERVER = "http://127.0.0.1:5000"
-        // Function to fetch all books
 
-        // Function to check if the user is logged in
-        function checkLogin() {
+
+        function getBooks() {
             const accessToken = sessionStorage.getItem('access_token');
-
-            // You can include additional logic here to verify the token or make an API request
-
-            // Example: Making a request to a protected endpoint
             axios.get(`${MY_SERVER}/books`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
 
                     const books = response.data.books;
+                    books.sort((a, b) => b.Id - a.Id);
                     const booksDiv = document.getElementById('booksDisplay');
-                    booksDiv.innerHTML = ''; // Clear the div before adding new content
-
-                    const ul = document.createElement('ul');
-                    books.forEach(function (book) {
-                        const li = document.createElement('li');
-                        li.textContent = `${book.Name} by ${book.Author} (${book.YearPublished})`;
-                        const buttonsContainer = document.createElement('div');
-                        buttonsContainer.style.float = 'right'; // This will align the buttons to the right
-                        buttonsContainer.style.textAlign = 'right'; // This will align the buttons to the right
-
-
-                        const deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'Delete';
-                        deleteButton.className = "btn btn-danger btn-sm";
-                        deleteButton.style = "--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;";
-                        deleteButton.style.marginRight = '5px';
-                        deleteButton.onclick = function () {
-                            deleteBook(book.Id);
-                        };
-                        buttonsContainer.appendChild(deleteButton);
-
-                        const editButton = document.createElement('button');
-                        editButton.textContent = 'Edit';
-                        editButton.className = 'btn btn-warning btn-sm';
-                        editButton.style = "--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;";
-                        editButton.onclick = function () {
-                            editBookFields(book);
-                        };
-                        buttonsContainer.appendChild(editButton);
-                        li.appendChild(buttonsContainer);
-
-                        ul.appendChild(li);
-
-                        const hr = document.createElement('hr'); // Create an <hr> element
-                        ul.appendChild(hr);
+                    booksDiv.innerHTML = '';
+                    books.forEach(book => {
+                        let bookType = 0;
+                        if (book.Type == 1) {
+                            bookType = 10;
+                        } else if (book.Type == 2) {
+                            bookType = 5;
+                        } else if (book.Type == 3) {
+                            bookType = 2;
+                        }
+                        const row = booksDiv.insertRow();
+                        row.innerHTML = `
+                        <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
+                        <td>${bookType} Days</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="loanBook(${loan.Id}))">Loan</button>
+                        </td>
+                    `;
                     });
-                    booksDiv.appendChild(ul);
-
                 })
                 .catch(error => {
-                        console.error('Error checking login status:', error);
+                    console.error('Error fetching books:', error);
                 });
         }
 
+        getBooks()
 
-        // Call the function to check if the user is logged in to have access to the rest of the page
-        checkLogin()
+        function getLoans() {
+            const accessToken = sessionStorage.getItem('access_token');
+            axios.get(`${MY_SERVER}/user/loans`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+                    const loans = response.data.loans;
+                    loans.sort((a, b) => b.Id - a.Id);
+                    const loanTableBody = document.getElementById('loanTableBody');
+                    loanTableBody.innerHTML = ''; // Clear existing data
+
+                    loans.forEach(loan => {
+                        const row = loanTableBody.insertRow();
+
+                        // Convert Return Date to a Date object
+                        const loanDate = new Date(loan.Loandate);
+                        const returnDate = new Date(loan.Returndate);
+                        // console.log(loanDate);
+                        // console.log(returnDate);
+                        const IL_loanDate = formatDate(loan.Loandate);
+                        const IL_returnDate = formatDate(loan.Returndate);
 
 
+                        // Check if the loan is overdue
+                        if (returnDate < new Date()) {
+                            row.classList.add('overdue-loan');
+                            // Apply a CSS class for overdue loans
+                            row.innerHTML = `
+                        <td class="overdue-loan">${loan.bookName}</td>
+                        <td class="overdue-loan">${IL_loanDate}</td>
+                        <td class="overdue-loan">${IL_returnDate} LATE</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="returnLoan(${loan.Id})">Return</button>
+                        </td>
+                    `;
+                        } else {
+                            // If not overdue, add the row without the overdue-loan class
+                            row.innerHTML = `
+                        <td>${loan.bookName}</td>
+                        <td>${IL_loanDate}</td>
+                        <td>${IL_returnDate}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="returnLoan(${loan.Id})">Return</button>
+                        </td>
+                    `;
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching loans:', error);
+                });
+        }
+
+        getLoans();
+
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}-${month}-${year}`;
+        }
+
+        function loanBook(loanId) {
+            event.preventDefault();
+
+            // Retrieve the selected values from dropdowns
+            const Customer_ID = document.getElementById('customerName').value;
+            const Book_ID = document.getElementById('bookName').value;
+
+            // Retrieve the access token from session storage
+            const accessToken = sessionStorage.getItem('access_token');
+
+            // Make a POST request to the server to create a loan
+            axios.post(`${MY_SERVER}/loans`, { BookID: Book_ID, CustomerID: Customer_ID }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+                .then(response => {
+
+                    getLoans(); // Refresh the list of loans
+                    Toastify({
+                        text: 'Loan added successfully.',
+                        gravity: "top",
+                        position: "center",
+                        duration: 7000,
+                        style: {
+                            background: "linear-gradient(to right, #00b09b, #96c93d)"
+                        },
+                    }).showToast();
+                    console.log('Loan added successfully:', response.data);
+                })
+                .catch(error => {
+                    if (error.response.status === 409 && error.response.data.message === 'A loan for this book already exists') {
+                        toastifyMessages('A loan for this book already exists.', "linear-gradient(to right, #ff4b2b, #ff416c)", 7000);
+                    }
+                    else {
+                        console.error('Error adding loan:', error);
+                    }
+                });
+
+        }
 
         function logout() {
             sessionStorage.removeItem('access_token');

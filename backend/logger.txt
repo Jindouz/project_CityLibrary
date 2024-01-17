@@ -353,3 +353,8 @@ ic| data['Username']: '2', 'logged in successfully'
 17-01-2024 16:21:27 | ic| loan.BookID: 6
 17-01-2024 16:21:27 | ic| loan.BookID: 20
 17-01-2024 16:21:27 | ic| loan.BookID: 17
+17-01-2024 17:41:49 | ic| data['Username']: 'user1', 'logged in successfully'
+17-01-2024 17:42:37 | ic| data['Username']: 'waga1', 'logged in successfully'
+17-01-2024 17:42:58 | ic| data['Username']: '1', 'logged in successfully'
+17-01-2024 20:21:49 | ic| data['Username']: '1', 'logged in successfully'
+17-01-2024 20:22:09 | ic| current_user: 1, 'used Loans POST.'

@@ -215,7 +215,7 @@
                 .then(response => {
                     const customers = response.data.customers;
                     const customerDropdown = document.getElementById(dropdownId);
-                    customerDropdown.innerHTML = ''; // Clear existing options
+                    customerDropdown.innerHTML = '';
                     customers.forEach(function (customer) {
                         const option = document.createElement('option');
                         option.value = customer.Id;
@@ -241,7 +241,7 @@
                 .then(response => {
                     const books = response.data.books;
                     const bookDropdown = document.getElementById(dropdownId);
-                    bookDropdown.innerHTML = ''; // Clear existing options
+                    bookDropdown.innerHTML = '';
                     books.forEach(book => {
                         let bookType = 0;
                         if (book.Type == 1) {
@@ -279,7 +279,7 @@
                 const loans = response.data.loans;
                 loans.sort((a, b) => b.Id - a.Id);
                 const loanTableBody = document.getElementById('loanTableBody');
-                loanTableBody.innerHTML = ''; // Clear existing data
+                loanTableBody.innerHTML = '';
 
                 loans.forEach(loan => {
                     const row = loanTableBody.insertRow();
@@ -337,7 +337,6 @@
 
     // function to add a loan
     function loanBook() {
-        // This prevents the default form submission if the button is of type "submit"
         event.preventDefault();
 
         // Retrieve the selected values from dropdowns
