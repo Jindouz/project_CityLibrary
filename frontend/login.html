@@ -99,15 +99,7 @@
 
             if (!username || !password) {
                 // Empty fields, show error message
-                Toastify({
-                    text: 'Please fill in all the required fields.',
-                    gravity: "top",
-                    position: "center",
-                    duration: 5000,
-                    style: {
-                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                    },
-                }).showToast();
+                toastifyMessages('Please fill in all the required fields.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                 return;
             }
 
@@ -133,20 +125,9 @@
                 })
                 .catch(error => {
                     console.error('Login error:', error);
-
-                    // Use Toastify for error message
-                    Toastify({
-                        text: 'Invalid credentials. Please try again.',
-                        gravity: "top",
-                        position: "center",
-                        duration: 5000,
-                        style: {
-                            background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                        },
-                    }).showToast();
+                    toastifyMessages('Invalid credentials. Please try again.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                 });
         }
-
 
         // Check for messages in the URL and display Toastify messages accordingly
         const urlParams = new URLSearchParams(window.location.search);
@@ -154,35 +135,24 @@
         const RegMessage = urlParams.get('RegMessage');
         const logoutMessage = urlParams.get('logout');
         if (loginMessage === 'true') {
-            Toastify({
-                text: 'You need to login to access this page.',
-                gravity: "top",
-                position: "center",
-                duration: 5000,
-                style: {
-                    background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                },
-            }).showToast();
+            toastifyMessages('You need to login to access this page.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
         }
         if (RegMessage === 'true') {
-            Toastify({
-                text: 'Registration successful! You can now login.',
-                gravity: "top",
-                position: "center",
-                duration: 7000,
-                style: {
-                    background: "linear-gradient(to right, #00b09b, #96c93d)"
-                },
-            }).showToast();
+            toastifyMessages('Registration successful! You can now login.', "linear-gradient(to right, #00b09b, #96c93d)", 7000);
         }
         if (logoutMessage === 'true') {
+            toastifyMessages('You have been logged out.', "linear-gradient(to right, #e8a400, #ffc257)", 7000);
+        }
+
+        // Function to display Toastify messages
+        function toastifyMessages(toastText, toastColor, toastDuration) {
             Toastify({
-                text: 'You have been logged out.',
+                text: toastText,
                 gravity: "top",
                 position: "center",
-                duration: 7000,
+                duration: toastDuration,
                 style: {
-                    background: "linear-gradient(to right, #e8a400, #ffc257)"
+                    background: toastColor
                 },
             }).showToast();
         }

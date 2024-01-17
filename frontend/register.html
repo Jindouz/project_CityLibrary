@@ -1,7 +1,7 @@
 <!-- register.html -->
 
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -24,9 +24,11 @@
             background-repeat: no-repeat;
             height: 110px;
         }
+
         .navbar-brand img {
             margin-right: 10px;
         }
+
         #adminButtons {
             display: flex;
             justify-content: flex-end;
@@ -118,29 +120,13 @@
 
             if (!username || !password || !confirmPassword || !Name || !City || !Age) {
                 // Empty fields, show error message
-                Toastify({
-                    text: 'Please fill in all the required fields.',
-                    gravity: "top",
-                    position: "center",
-                    duration: 5000,
-                    style: {
-                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                    },
-                }).showToast();
+                toastifyMessages('Please fill in all the required fields.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                 return;
             }
 
             if (password !== confirmPassword) {
                 // Passwords don't match, show error message
-                Toastify({
-                    text: 'Passwords do not match. Please try again.',
-                    gravity: "top",
-                    position: "center",
-                    duration: 5000,
-                    style: {
-                        background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                    },
-                }).showToast();
+                toastifyMessages('Passwords do not match. Please try again.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                 return;
             }
             // Make a POST request to your register endpoint
@@ -154,28 +140,25 @@
 
                     if (error.response.status === 400 && error.response.data.message === 'Username already taken') {
                         // Username is already taken, show error message
-                        Toastify({
-                            text: 'That username is already taken. Please select a different one.',
-                            gravity: "top",
-                            position: "center",
-                            duration: 5000,
-                            style: {
-                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                            },
-                        }).showToast();
+                        toastifyMessages('That username is already taken. Please select a different one.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                     } else {
                         // Use Toastify for error message
-                        Toastify({
-                            text: 'Registration failed. Please try again.',
-                            gravity: "top",
-                            position: "center",
-                            duration: 5000,
-                            style: {
-                                background: "linear-gradient(to right, #ff4b2b, #ff416c)"
-                            },
-                        }).showToast();
+                        toastifyMessages('Registration failed. Please try again.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
                     }
                 });
+        }
+
+        // Function to display Toastify messages
+        function toastifyMessages(toastText, toastColor, toastDuration) {
+            Toastify({
+                text: toastText,
+                gravity: "top",
+                position: "center",
+                duration: toastDuration,
+                style: {
+                    background: toastColor
+                },
+            }).showToast();
         }
     </script>
 </body>

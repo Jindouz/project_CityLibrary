@@ -200,6 +200,8 @@
 <script>
 
     MY_SERVER = "http://127.0.0.1:5000"
+
+    // Global variable to store the edit loan modal
     let editLoanModal = 0;
 
 
@@ -479,6 +481,7 @@
         window.location.href = 'login.html?logout=true';
     }
 
+    // Function to display Toastify messages
     function toastifyMessages(toastText, toastColor, toastDuration) {
         Toastify({
                         text: toastText,
@@ -490,8 +493,6 @@
                         },
                     }).showToast();
     }
-
-
 
     // Function to get the current user to check for login, welcome message, and deny access if not admin
     function getCurrentUser() {
