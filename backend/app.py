@@ -61,8 +61,7 @@ class User(db.Model):
 
 # ==============================================
 
-# Route for redirecting to the frontend pages without needing 
-# to use live server on a different port (an alternative solution that avoids CORS Errors)
+# Route for redirecting to the frontend pages without needing to use live server on a different port (an alternative solution that avoids CORS Errors)
 @app.route('/')
 def landing_page():
     redirect_url = '/frontend/index.html'
@@ -466,15 +465,19 @@ class CustomerResource(Resource):
     def put(self, customer_id):
         current_user = get_jwt_identity()
         customer = db.session.get(Customer, customer_id)
-        if customer:
+        if not customer:
+            return {'message': 'Customer not found'}, 404
+
+        try:
             data = customer_parser.parse_args()
             customer.Name = data['Name']
             customer.City = data['City']
             customer.Age = data['Age']
             db.session.commit()
             return {'message': 'Customer updated successfully'}
-        else:
-            return {'message': 'Customer not found'}, 404
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Error updating customer: {str(e)}'}, 500
 
 
     # delete customer and related user including loans
@@ -588,9 +591,7 @@ class LoanResource(Resource):
         current_user = get_jwt_identity()
         data = loan_parser.parse_args()
 
-        # if not is_admin(current_user):
-        #     return {'message': 'Only admins can add loans'}, 403
-            # Input Validation
+        # Input Validation
         if 'CustomerID' not in data or 'BookID' not in data:
             return {'message': 'CustomerID and BookID are required fields'}, 400  # Bad Request
 

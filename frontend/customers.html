@@ -307,6 +307,13 @@
                 return;
             }
 
+            if (Age) {
+                // Check if Age is a number
+                if (isNaN(Age)) {
+                    toastifyMessages('Age must be an number.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                }
+            }
+
             if (password !== confirmPassword) {
                 // Passwords don't match, show error message
                 toastifyMessages('Passwords do not match. Please try again.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
@@ -352,6 +359,13 @@
                 // No customer selected for editing, show error message
                 toastifyMessages('Please select a customer to edit.', 'linear-gradient(to right, #ff4b2b, #ff416c)', 5000);
                 return;
+            }
+
+            if (customerAge) {
+                // Check if customerAge is a number
+                if (isNaN(customerAge)) {
+                    toastifyMessages('Age must be an number.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                }
             }
 
             // Use the selectedCustomerId when sending the request
