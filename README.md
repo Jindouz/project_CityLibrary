@@ -21,6 +21,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 
    ```
    git clone https://github.com/jindouz/night-city-library.git
+   ```
 
 2. Start Virtual Environment:
     ```
@@ -49,16 +50,17 @@ Night City Library is a web-based Loan Management System that enables users and 
 
 - **Loan Management**: Users can loan books, view current loans, and return loans and if a loan is late it is highlighted for them. 
 
-- **Customer and Book Management**: Admins can manage customers, books and loans. 
+- **Customer and Book Management**: Admins can manage customers, books and loans.
 
 - **Search by Name**: Users can search for books by name.  (and also for Customers if Admin)  
 
 - **Cascade Deletion**: 
     - When an Admin deletes a customer in the customers HTML page it also deletes the associated user account and all of his loans. 
     - When deleting a book it also deletes its book image and its associated loans. 
-    - Editing a book with a new book image will overwrite the old image and its path.  
 
-- **Toastify Notifications**: Toastify will notice the user for most actions made on each HTML page, including welcome messages, errors and access restrictions.
+- **Book Image Upload**: Admins have the option to upload an image to each new book they add. Editing a book with a new book image will replace the old image and its path. Deleting a book that has an image will also delete the image from the uploads folder.
+
+- **Toastify Notifications**: Toastify will notify the user for most actions made on each HTML page, including welcome messages, errors and access restrictions.
 
 ## Project Structure {#project-structure}
 
@@ -90,7 +92,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 - **Upload Image: /upload_image** (POST)
 
 ## File Uploads {#file-uploads}
-- Upload book images when adding books. (saved to the backend, deleted when deleting associated book)
+- Upload book images (10MB max, restricted to JPG and PNG file types) when adding books. (saved to the backend, deleted when deleting associated book)
 
 ## Icecream Logger {#icecream-logger}
 - ICECREAM is used for logging. Logs are written to the logger.txt file.

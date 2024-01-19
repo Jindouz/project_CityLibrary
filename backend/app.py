@@ -770,6 +770,9 @@ api.add_resource(LoanResource, '/loans', '/loans/<int:loan_id>')
 class UploadImageResource(Resource):
     @jwt_required()
     def post(self):
+        current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can upload files'}, 403
         parser = reqparse.RequestParser()
         parser.add_argument('image', type = werkzeug.datastructures.FileStorage, location='files')
         args = parser.parse_args()
@@ -780,7 +783,7 @@ class UploadImageResource(Resource):
             # Check if the file has an allowed extension
             if not allowed_file(image_file.filename):
                 return {'message': 'Invalid file extension. Supported extensions are png, jpg, and jpeg.'}, 409
-
+            
             # Check if the file size is within the allowed limit
             if image_file.content_length > current_app.config['MAX_CONTENT_LENGTH']:
                 return {'message': 'File size exceeds the allowed limit (10 MB).'}, 400

@@ -560,7 +560,7 @@
                         adminButtons.appendChild(adminButton);
                     }
                     else {
-                        document.getElementById('displayusername').innerHTML = response.data.Username;
+                        window.location.href = 'index.html?denied=true';
                     }
                 })
                 .catch(error => {
