@@ -375,7 +375,15 @@
                         });
                 })
                 .catch(error => {
-                    console.error('Error uploading image:', error);
+                    // If the request returns a 403, redirect to login.html
+                    if (error.response && error.response.status === 409) {
+                        toastifyMessages('Invalid file extension. Supported extensions are png, jpg, and jpeg.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                    }
+                    else if (error.response && error.response.status === 413) {
+                        toastifyMessages('File size exceeds the allowed limit (10 MB).', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                    } else {
+                        console.error('Error uploading image:', error);
+                    }
                 });
         }
 
@@ -447,6 +455,17 @@
                             console.error('Error updating book:', error);
                         });
                 })
+                .catch(error => {
+                    // If the request returns a 403, redirect to login.html
+                    if (error.response && error.response.status === 409) {
+                        toastifyMessages('Invalid file extension. Supported extensions are png, jpg, and jpeg.', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                    }
+                    else if (error.response && error.response.status === 413) {
+                        toastifyMessages('File size exceeds the allowed limit (10 MB).', "linear-gradient(to right, #ff4b2b, #ff416c)", 5000);
+                    } else {
+                        console.error('Error uploading image:', error);
+                    }
+                });
         }
 
         // Function to populate form fields for editing

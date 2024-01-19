@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os
-from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
+from flask import Flask, current_app, jsonify, render_template, request, send_file, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -776,6 +776,15 @@ class UploadImageResource(Resource):
 
         if args['image'] is not None:
             image_file = args['image']
+
+            # Check if the file has an allowed extension
+            if not allowed_file(image_file.filename):
+                return {'message': 'Invalid file extension. Supported extensions are png, jpg, and jpeg.'}, 409
+
+            # Check if the file size is within the allowed limit
+            if image_file.content_length > current_app.config['MAX_CONTENT_LENGTH']:
+                return {'message': 'File size exceeds the allowed limit (10 MB).'}, 400
+
             timestamp = datetime.now().strftime("%d%m%y_%H%M%S")
             image_path = f'uploads/img/image_{timestamp}_{secure_filename(image_file.filename)}'
             image_file.save(image_path)
