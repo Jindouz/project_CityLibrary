@@ -406,13 +406,30 @@ class BookResource(Resource):
         book = db.session.get(Book, book_id)
         if book:
             data = book_parser.parse_args()
+
             # Validate the book type (restricted to 1, 2, and 3)
             if data['Type'] not in {1, 2, 3}:
                 return {'message': 'Invalid book type. Supported types are 1, 2, and 3.'}, 400
+            
+            img_path = request.json.get('img_path', None)
+            data['img'] = img_path
+            
             book.Name = data['Name']
             book.Author = data['Author']
             book.YearPublished = data['YearPublished']
             book.Type = data['Type']
+
+            # Delete old image if a new one is provided
+            if img_path is not None:
+                old_img_path = book.img
+                if old_img_path:
+                    try:
+                        os.remove(old_img_path)
+                    except OSError:
+                        pass  # Handle the case if the file doesn't exist or cannot be removed
+                # Update image path
+                book.img = data['img']
+
             db.session.commit()
             return {'message': 'Book updated successfully'}
         else:
@@ -435,25 +452,13 @@ class BookResource(Resource):
             db.session.delete(book)
             db.session.commit()
 
-            # Delete image file if it exists (in a secure and safe way)
+            # Delete image file if it exists
             if image_path:
-                # Get the project directory based on the current working directory
-                project_directory = os.getcwd()
-                print(f"Project directory: {project_directory}")
-                # Makes sure that the file path to the project directory is correct and replaces backslashes with forward slashes
-                file_path_within_project = os.path.join(project_directory, image_path.replace("/", os.path.sep))
-                print(f"File path within project: {file_path_within_project}")
-
-                if os.path.exists(file_path_within_project):
-                    try:
-                        # Delete the file
-                        os.remove(file_path_within_project)
-                        ic(current_user, "has deleted an image for a book.")  # IC logging to logger.txt
-                        print(f"File deleted successfully: {file_path_within_project}")
-                    except Exception as e:
-                        ic(f"Error deleting file: {e}")
-                else:
-                    print(f"File not found: {file_path_within_project}")
+                os.remove(image_path)
+                ic(current_user, "has deleted an image for a book.")  # IC logging to logger.txt
+                print(f"File deleted successfully: {image_path}")
+            else:
+                print(f"File not found: {image_path}")
 
             ic(current_user, "used Books DELETE.")  # IC logging to logger.txt
             return {'message': 'Book deleted successfully'}
@@ -477,7 +482,7 @@ customer_parser.add_argument('Age', type=int, required=True, help='Age cannot be
 
 # Customers CRUD
 class CustomerResource(Resource):
-    # GET customers function (also using a join query with the users table)
+    # GET customers function (also uses a join query with the users table)
     @jwt_required()
     def get(self, customer_id=None):
         current_user = get_jwt_identity()
