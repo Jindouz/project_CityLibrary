@@ -1,92 +1,53 @@
-# ABOUT THIS APP
+# Night City Library - Loan Management System
 
-Thunder Client CRUD Testing:
+Night City Library is a web-based Loan Management System that enables users to manage book loans, customers, and books. The application is developed using Python with Flask for the backend and HTML, CSS, and JavaScript for the frontend.
 
-Books:
-{
-    "Name": "Sample Book",
-    "Author": "John Doe",
-    "YearPublished": 2022,
-    "Type": 1
-}
+## Features
 
-Customers:
-{
-    "Name": "John Doe",
-    "City": "Cityville",
-    "Age": 30
-}
+- **User Authentication**: Users can log in to the system, and administrators have access to additional features.
+- **Loan Management**: Users can loan books, view current loans, edit loan details, and delete loans.
+- **Customer and Book Management**: Admins can manage customers and books, ensuring an up-to-date database.
 
-Loans:
-{
-    "CustomerID": 2,
-    "BookID": 2,
-    "Loandate": "09-01-2024"
-}
+## Project Structure
 
-Register and Login:
-{
-    "Username": "1",
-    "Password": "1",
-    "is_admin": True
-}
+- **app.py**: The main Python file containing the Flask application, API routes, and database interactions.
+- **templates folder**: Contains HTML files for various pages such as login, register, menu, and individual pages for managing loans, customers, and books.
+- **static folder**: Holds static assets such as images, icons, and CSS files.
 
-Registration of User + Customer:
-{
-    "Username": "userwaga",
-    "Password": "123",
-    "Name": "waga",
-    "City": "NYC",
-    "Age": 22
-}
+## How to Run
 
-Get access token after logging in and put it in Auth/Header in Thunder Client:
+1. Clone the repository:
 
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcwNDgxNjkzNSwianRpIjoiMmYzZjM1ZDMtOTE0Yi00N2I0LTlhNTUtNGFkOTNiN2IyZGZlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzA0ODE2OTM1LCJjc3JmIjoiMTMxZjQ5ZGMtYTY0OC00YzFjLWIyOTItNWE3N2ExMmI1YjBmIiwiZXhwIjoxNzA0ODE4NzM1fQ.wr-uAb_pHMv0wqTq1yeP3rJeeUY17ea5T7eGb4ZFfDY
+   ```bash
+   git clone https://github.com/your-username/night-city-library.git
 
-Success Login Example:
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcwNDgxNjkzNSwianRpIjoiMmYzZjM1ZDMtOTE0Yi00N2I0LTlhNTUtNGFkOTNiN2IyZGZlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzA0ODE2OTM1LCJjc3JmIjoiMTMxZjQ5ZGMtYTY0OC00YzFjLWIyOTItNWE3N2ExMmI1YjBmIiwiZXhwIjoxNzA0ODE4NzM1fQ.wr-uAb_pHMv0wqTq1yeP3rJeeUY17ea5T7eGb4ZFfDY",
-  "message": "Login successful"
-}
+2. Install requirements:
+    ```
+    pip install -r requirements.txt
+    ```
 
+Run the application:
 
+bash
+Copy code
+python app.py
+The application will be accessible at http://127.0.0.1:5000.
 
-## TO DO in GUI HTML:
-* Loan dropbox selection in GUI?
-Loan for 10 Days
-Loan for 5 Days
-Loan for 2 Days
+## HTML Pages
+login.html: User login page.
+register.html: User registration page.
+menu.html: Main menu for users with options based on user roles.
+loans.html: Loan management page for users and admins.
+customers.html: Customer management page for admins.
+books.html: Book management page for admins.
+404.html: Custom error page for handling 404 errors.
+Dependencies
+Flask: A web framework for Python.
+Bootstrap: Front-end framework for building responsive and attractive web pages.
+Axios: A promise-based HTTP client for making requests to the server.
+Toastify: A simple, lightweight, and responsive toast notification library.
+Contributing
+Contributions are welcome! If you find a bug or have an enhancement in mind, please open an issue or submit a pull request.
 
-Secure Storage:
-Store the access token securely in your client application. Avoid exposing it in public places or hardcoding it in your code.
-Consider using secure storage mechanisms, such as secure cookies or a secure local storage, depending on your application's architecture.
-
-Make it so expired loans are in an expired loans chart and make their background column line colored light red?
-
-Make the dropdown selection box procedural and hide the next dropdown box and submit button until after all fields are made?
-
-Choose a book to loan:
-Choose for how long:
-
-
-Admin section (for testing):
-CRUD Books
-CRUD Customers
-CRUD Loans
-
-User section:
-Login as a customer and manage loaning books.
-
-## Extras:
-* add to both the readme and the top of the app comments about what the app does
-* mention that query.get has been replaced with session.get because of an sqlalchemy update
-
-* V check that all returns are JSON - They are, flask-RESTful makes sure they return JSON by default.
-
-
-
-## TO DO in test_app:
-- irrelevant for now - fix the backend/app.py path
-- irrelevant for now - make it so it wont delete the database after each test and edit out or fix the tempfile
-
+License
+This project is licensed under the MIT License - see the LICENSE.md file for details.

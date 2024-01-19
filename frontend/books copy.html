@@ -72,13 +72,14 @@
         </div>
     </div>
 
-    <h3 class="mt-4" style="text-align: center;">Book Manager</h3>
+    <h3 class="mt-4" style="text-align: center;">Book Manager:</h3>
     </div>
 
+    <div class="display"></div>
     <br>
-    <!-- Add or Edit Book Section -->
-    <div class="row mt-2">
-        <div class="card col-md-5 mx-auto">
+    <!-- Add Book Section -->
+    <div class="row justify-content-center">
+        <div class="card col-md-5">
             <div class="card-header" id="addBookSection">
                 <h3>Add or Edit a Book</h3>
             </div>
@@ -105,20 +106,19 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="image" class="form-label">Image (Add Only - Optional):</label>
+                        <label for="image" class="form-label">Image (Optional):</label>
                         <input type="file" id="image" name="image" class="form-control">
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addBook()">Add Book</button>
                     <button type="button" class="btn btn-primary" onclick="editBookForm()">Save Edited Book</button>
                     <button type="button" class="btn btn-warning" onclick="clearFields()">Clear Fields</button>
+
                 </form>
             </div>
         </div>
-    </div>
-    <br>
-    <!-- Book List Section -->
-    <div class="row justify-content-center">
-        <div class="card col-md-8">
+
+        <!-- Book List Section -->
+        <div class="card col-md-5">
             <div class="card-header">
                 <h3>Book List</h3>
             </div>
@@ -131,6 +131,7 @@
             </div>
         </div>
     </div>
+  
 
     <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -140,7 +141,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Deleting this Book will also delete its existing loans. Are you sure? 
+                    Are you sure you want to delete this Book?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -190,22 +191,11 @@
 
                         // Card body
                         const cardBody = document.createElement('div');
-                        cardBody.className = 'card-body d-flex';
-                        
-                        if (book.img_path == null) {
-                            book.img_path = 'frontend/assets/icons/default_book.jpg';
-                        }
+                        cardBody.className = 'card-body';
 
-                        // Book image
-                        const bookImage = document.createElement('img');
-                        bookImage.src = `${MY_SERVER}/${book.img_path}`;
-                        bookImage.className = 'card-img-left';
-                        bookImage.style.maxWidth = '80px';
-                        cardBody.appendChild(bookImage);
-
-                        // Book details
-                        const bookDetails = document.createElement('div');
-                        bookDetails.className = 'ms-3';
+                        // Book info
+                        const bookInfo = document.createElement('p');
+                        bookInfo.className = 'card-text';
                         bookType = 0;
                         if (book.Type == 1) {
                             bookType = 10;
@@ -215,17 +205,20 @@
                             bookType = 2;
                         }
 
-                        bookDetails.innerHTML = `<strong>Book Name:</strong> ${book.Name} (${book.YearPublished}) <br><strong>Author:</strong> ${book.Author} <br><strong>Loan Duration:</strong> ${bookType} Days`;
+                        if (book.img_path == null) {
+                            book.img_path = 'frontend/assets/icons/default_book.jpg';
+                        }
+                        
+                        bookInfo.innerHTML = `<img src=${MY_SERVER}/${book.img_path} class="card-img-top"><strong>Book Name:</strong> ${book.Name} (${book.YearPublished}) <br><strong>Author:</strong> ${book.Author} <br><strong>Loan Duration:</strong> ${bookType} Days`;
 
-                        // Buttons container
                         const buttonsContainer = document.createElement('div');
-                        buttonsContainer.className = 'mb-2 d-flex justify-content-end';
-
+                        buttonsContainer.className = 'd-flex justify-content-end';
 
                         // Add delete button
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Delete';
                         deleteButton.className = "btn btn-danger btn-sm";
+                        deleteButton.style = "--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;";
                         deleteButton.style.marginRight = '5px';
                         deleteButton.onclick = function () {
                             deleteBook(book.Id);
@@ -236,20 +229,23 @@
                         const editButton = document.createElement('button');
                         editButton.textContent = 'Edit';
                         editButton.className = 'btn btn-warning btn-sm';
+                        editButton.style = "--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;";
                         editButton.onclick = function () {
                             editBookFields(book);
                         };
                         buttonsContainer.appendChild(editButton);
 
                         // Append elements
-                        cardBody.appendChild(bookDetails);
+                        cardBody.appendChild(bookInfo);
+                        cardBody.appendChild(buttonsContainer);
                         card.appendChild(cardBody);
-                        card.appendChild(buttonsContainer);
+
+                        // Append card to the customersDiv
                         booksDiv.appendChild(card);
                     });
                 })
                 .catch(error => {
-                    console.error('Error fetching books:', error);
+                    console.error('Error checking login status:', error);
                 });
         }
 

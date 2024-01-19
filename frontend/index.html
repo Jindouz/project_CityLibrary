@@ -54,6 +54,14 @@
             border-left: 1px solid #5c5c5c !important;
             border-top: 1px solid #5c5c5c !important;
         }
+
+        .zoomable-image {
+            transition: transform 0.3s;
+        }
+
+        .zoomable-image:hover {
+            transform: scale(4.1);
+        }
     </style>
 </head>
 
@@ -106,6 +114,7 @@
                 <table class="table table-striped table-responsive loan-table">
                     <thead>
                         <tr>
+                            <th> </th>
                             <th>Book Name</th>
                             <th>Loan Date</th>
                             <th>Return Date</th>
@@ -127,10 +136,15 @@
             <div class="card-header">
                 <h3>Available Books</h3>
             </div>
+            <div class="col-md-11 mt-3 mx-auto">
+                <label for="searchBook" class="form-label">Search Book by Name:</label>
+                <input type="text" id="searchBook" class="form-control" oninput="searchBooks()">
+            </div>
             <div class="card-body">
                 <table class="table table-striped table-responsive loan-table">
                     <thead>
                         <tr>
+                            <th> </th>
                             <th>Book Name</th>
                             <th>Loan Duration</th>
                             <th>Status</th>
@@ -152,9 +166,15 @@
         MY_SERVER = "http://127.0.0.1:5000"
 
 
-        function getBooks() {
+        function getBooks(searchQuery) {
             const accessToken = sessionStorage.getItem('access_token');
-            axios.get(`${MY_SERVER}/books`, {
+            let apiUrl = `${MY_SERVER}/books`;
+
+            if (searchQuery) {
+                apiUrl += `?search=${searchQuery}`;
+            }
+
+            axios.get(apiUrl, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             })
                 .then(response => {
@@ -183,8 +203,12 @@
                                 // Check if the book is in the current loans using the loans data
                                 const isBookLoaned = loans.some(loan => loan.BookID === book.Id);
                                 const row = booksDiv.insertRow();
+                                if (book.img_path == null) {
+                                    book.img_path = 'frontend/assets/icons/default_book.jpg';
+                                }
                                 if (isBookLoaned) {
                                     row.innerHTML = `
+                                <td><img src="${MY_SERVER}/${book.img_path}" class="zoomable-image" style="width: 40px; height: 55px;"></td>
                                 <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
                                 <td>${bookType} Days</td>
                                 <th class="unavailable-loan">Loaned</th>
@@ -195,6 +219,7 @@
                                 }
                                 else {
                                     row.innerHTML = `
+                                <td><img src="${MY_SERVER}/${book.img_path}" class="zoomable-image" style="width: 40px; height: 55px;"></td>
                                 <td><strong>${book.Name}</strong> by ${book.Author} (${book.YearPublished})</td>
                                 <td>${bookType} Days</td>
                                 <th class="available-loan">Available</th>
@@ -216,6 +241,11 @@
 
         getBooks()
 
+        function searchBooks() {
+            const searchQuery = document.getElementById('searchBook').value.trim();
+            getBooks(searchQuery);
+        }
+
         function getLoans() {
             const accessToken = sessionStorage.getItem('access_token');
             axios.get(`${MY_SERVER}/user/loans`, {
@@ -230,6 +260,10 @@
                     loans.forEach(loan => {
                         const row = loanTableBody.insertRow();
 
+                        if (loan.img_path == null) {
+                            loan.img_path = 'frontend/assets/icons/default_book.jpg';
+                        }
+
                         // Convert Return Date to a Date object
                         const loanDate = new Date(loan.Loandate);
                         const returnDate = new Date(loan.Returndate);
@@ -238,12 +272,12 @@
                         const IL_loanDate = formatDate(loan.Loandate);
                         const IL_returnDate = formatDate(loan.Returndate);
 
-
                         // Check if the loan is overdue
                         if (returnDate < new Date()) {
                             row.classList.add('overdue-loan');
                             // Apply a CSS class for overdue loans
                             row.innerHTML = `
+                        <td><img src="${MY_SERVER}/${loan.img_path}" class="zoomable-image" style="width: 40px; height: 55px;"></td>
                         <td class="overdue-loan">${loan.bookName}</td>
                         <td class="overdue-loan">${IL_loanDate}</td>
                         <td class="overdue-loan">${IL_returnDate} LATE</td>
@@ -254,6 +288,7 @@
                         } else {
                             // If not overdue, add the row without the overdue-loan class
                             row.innerHTML = `
+                        <td><img src="${MY_SERVER}/${loan.img_path}" class="zoomable-image" style="width: 40px; height: 55px;"></td>
                         <td>${loan.bookName}</td>
                         <td>${IL_loanDate}</td>
                         <td>${IL_returnDate}</td>

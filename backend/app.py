@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, request, send_from_directory
+import os
+from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 from flask_bcrypt import Bcrypt
 from icecream import ic
+import werkzeug
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__) 
 api = Api(app) 
@@ -18,6 +21,8 @@ jwt = JWTManager(app)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=120)
 bcrypt = Bcrypt(app)
 
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # Uploads set to max 10 MB
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # =============== SQL Models ===============
 
@@ -29,6 +34,7 @@ class Book(db.Model):
     Author = db.Column(db.String(100))
     YearPublished = db.Column(db.Integer)
     Type = db.Column(db.Integer)
+    img = db.Column(db.String(255))
 
 # Customer Model
 class Customer(db.Model):
@@ -61,16 +67,26 @@ class User(db.Model):
 
 # ==============================================
 
-# Route for redirecting to the frontend pages without needing to use live server on a different port (an alternative solution that avoids CORS Errors)
+# Route that redirects to the frontend HTML pages (so that the entire project could run on the same port and without needing to "live server" and CORS)
 @app.route('/')
 def landing_page():
     redirect_url = '/frontend/index.html'
     return render_template('redirect.html', redirect_url=redirect_url)
 
-# Route for serving files in the 'frontend' folder
+# Route for serving files in the 'frontend' folder (mostly the HTML files and their assets folder)
 @app.route('/frontend/<path:filename>')
 def serve_frontend(filename):
     return send_from_directory('../frontend', filename)
+
+# Route for serving images in the 'uploads' folder
+@app.route('/uploads/img/<path:filename>')
+def serve_images(filename):
+    filename = f'uploads/img/{filename}'
+    if filename.lower().endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.lower().endswith('.png'):
+        mimetype = 'image/png'
+    return send_file(filename, mimetype=mimetype)
 
 # =============== Registeration and Login ================
 
@@ -82,7 +98,7 @@ register_parser.add_argument('Name', type=str, required=True, help='Name cannot 
 register_parser.add_argument('City', type=str, required=True, help='City cannot be blank')
 register_parser.add_argument('Age', type=int, required=True, help='Age cannot be blank')
 
-# User Registration
+# User Registration (also creates a new Customer)
 class UserRegistrationResource(Resource):
     def post(self):
         data = register_parser.parse_args()
@@ -114,6 +130,7 @@ api.add_resource(UserRegistrationResource, '/register')
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('Username', type=str, required=True, help='Username cannot be blank')
 login_parser.add_argument('Password', type=str, required=True, help='Password cannot be blank')
+
 # User Login
 class UserLoginResource(Resource):
     def post(self):
@@ -142,9 +159,10 @@ class UserLoginResource(Resource):
 # Add UserLoginResource to the API
 api.add_resource(UserLoginResource, '/login')
 
-# =====
+# ======================================================
 
-# =============== Extra Users Functions ================
+
+# ============ User Management Resources  ==============
 
 # Request parser for handling incoming JSON data
 user_parser = reqparse.RequestParser()
@@ -155,6 +173,8 @@ user_parser.add_argument('CustomerID', type=int, required=False)
 
 # Get specific User details for access check and messages (customername, username, is_admin)
 class UserResource(Resource):
+
+    # get user details
     @jwt_required()
     def get(self):
         current_user = get_jwt_identity()
@@ -166,7 +186,8 @@ class UserResource(Resource):
             customerName = ''
         return {'Name': customerName, 'Username': user.Username, 'is_admin': user.is_admin}
     
-    # updating users credentials and admin status (mainly for debug and promoting/demoting existing users as Admins via ThunderClient)
+    # updating users credentials and admin status 
+    #(mainly for debug and promoting/demoting existing users as Admins via ThunderClient, though its faster with DBeaver)
     @jwt_required()
     def put(self, user_id):
         current_user = get_jwt_identity()
@@ -188,7 +209,7 @@ class UserResource(Resource):
         else:
             return {'message': 'user not found'}, 404
         
-    # deleting users
+    # deleting users (mainly for debug, this method is not used anymore since the Customers delete method combines both)
     @jwt_required()
     def delete(self, user_id):
         current_user = get_jwt_identity()
@@ -205,8 +226,10 @@ class UserResource(Resource):
 
 api.add_resource(UserResource, '/user','/user/<int:user_id>')
 
+# ======================================================
 
-# User Loans by ID
+
+# ============== Standard-User Resource ================
 class UserLoanResource(Resource):
     @jwt_required()
     def get(self):
@@ -223,13 +246,14 @@ class UserLoanResource(Resource):
 
             customerName = customer.Name if customer else None
             bookName = book.Name if book else None
+            bookImgPath = book.img if book else None
             userName = user.Username if user else None
 
             loans_data.append({
                 'Id': loan.Id, 'CustomerID': loan.CustomerID, 'BookID': loan.BookID,
                 'Loandate': loan.Loandate.strftime('%Y-%m-%d'),
                 'Returndate': loan.Returndate.strftime('%Y-%m-%d'),
-                'customerName': customerName, 'bookName': bookName, 'userName': userName
+                'customerName': customerName, 'bookName': bookName, 'userName': userName, 'img_path': bookImgPath
             })
 
         return {'loans': loans_data}
@@ -240,15 +264,14 @@ class UserLoanResource(Resource):
         user = db.session.get(User, current_user_id)
         if not user:
             return {'message': 'User not found'}, 404
-        # Customize this logic based on your requirements for regular users
+
         data = loan_parser.parse_args()
 
         # Assign the current date to the 'Loandate' field
         data['Loandate'] = datetime.now().date()
 
-        # For regular users, associate the loan with the current user
+        # associate the loan with the current user
         data['CustomerID'] = user.CustomerID
-        # You might want to set other fields based on your requirements
 
         # Check if the book with the given BookID exists
         book = db.session.get(Book, data['BookID'])
@@ -263,7 +286,6 @@ class UserLoanResource(Resource):
         if existing_loan:
             return {'message': 'A loan for this book already exists'}, 409  # Conflict
 
-        # Associate the loan with the customer (current user)
         new_loan = Loan(**data)
 
         try:
@@ -288,8 +310,6 @@ class UserLoanResource(Resource):
         if not loan:
             return {'message': 'Loan not found'}, 404
 
-        # You may want to add additional checks here, e.g., if the loan belongs to the current user
-
         try:
             db.session.delete(loan)
             db.session.commit()
@@ -301,8 +321,10 @@ class UserLoanResource(Resource):
 
 api.add_resource(UserLoanResource, '/user/loans', '/user/loans/<int:loan_id>')
 
-# =====================================
+# =========================================
 
+
+# ============ Extra Functions ============
 
 # Handle token expiration
 @jwt_required()
@@ -310,11 +332,18 @@ def token_expired_callback():
     current_user = get_jwt_identity()
     return jsonify(message="Token has expired"), 401
 
+# Check if the user is an admin
 def is_admin(current_user):
     user = db.session.get(User, current_user)
     return user.is_admin
 
+# Check if the file (from uploads) has a valid extension
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # =====================================
+
+
 
 
 
@@ -326,6 +355,7 @@ book_parser.add_argument('Name', type=str, required=True, help='Name cannot be b
 book_parser.add_argument('Author', type=str, required=True, help='Author cannot be blank')
 book_parser.add_argument('YearPublished', type=int, required=True, help='YearPublished cannot be blank')
 book_parser.add_argument('Type', type=int, required=True, help='Type cannot be blank')
+book_parser.add_argument('img', type=werkzeug.datastructures.FileStorage, location='files', required=False)
 
 # Books CRUD
 class BookResource(Resource):
@@ -336,7 +366,7 @@ class BookResource(Resource):
             book = db.session.get(Book, book_id) # Get book by ID
             if book:
                 return {'Id': book.Id, 'Name': book.Name, 'Author': book.Author,
-                        'YearPublished': book.YearPublished, 'Type': book.Type}
+                        'YearPublished': book.YearPublished, 'Type': book.Type, 'img_path': book.img}
             else:
                 return {'message': 'Book not found'}, 404
         else:
@@ -346,7 +376,7 @@ class BookResource(Resource):
             else:
                 books = Book.query.all() # Get all books
             books_data = [{'Id': book.Id, 'Name': book.Name, 'Author': book.Author,
-                           'YearPublished': book.YearPublished, 'Type': book.Type} for book in books]
+                           'YearPublished': book.YearPublished, 'Type': book.Type, 'img_path': book.img} for book in books]
             return {'books': books_data}
 
     @jwt_required()
@@ -358,7 +388,12 @@ class BookResource(Resource):
         # Validate the book type (restricted to 1, 2, and 3)
         if data['Type'] not in {1, 2, 3}:
             return {'message': 'Invalid book type. Supported types are 1, 2, and 3.'}, 400
+        
+        img_path = request.json.get('img_path', None)
+        data['img'] = img_path
+
         new_book = Book(**data)
+
         db.session.add(new_book)
         db.session.commit()
         return {'message': 'Book added successfully'}, 201
@@ -387,11 +422,40 @@ class BookResource(Resource):
     def delete(self, book_id):
         current_user = get_jwt_identity()
         if not is_admin(current_user):
-            return {'message': 'Only admins can add books'}, 403
+            return {'message': 'Only admins can delete books'}, 403
         book = db.session.get(Book, book_id)
         if book:
+            image_path = book.img
+            loan = Loan.query.filter_by(BookID=book.Id)
+            if loan:
+                for loans in loan:
+                    db.session.delete(loans) # Delete the related loans
+                    db.session.commit()
+
             db.session.delete(book)
             db.session.commit()
+
+            # Delete image file if it exists (in a secure and safe way)
+            if image_path:
+                # Get the project directory based on the current working directory
+                project_directory = os.getcwd()
+                print(f"Project directory: {project_directory}")
+                # Makes sure that the file path to the project directory is correct and replaces backslashes with forward slashes
+                file_path_within_project = os.path.join(project_directory, image_path.replace("/", os.path.sep))
+                print(f"File path within project: {file_path_within_project}")
+
+                if os.path.exists(file_path_within_project):
+                    try:
+                        # Delete the file
+                        os.remove(file_path_within_project)
+                        ic(current_user, "has deleted an image for a book.")  # IC logging to logger.txt
+                        print(f"File deleted successfully: {file_path_within_project}")
+                    except Exception as e:
+                        ic(f"Error deleting file: {e}")
+                else:
+                    print(f"File not found: {file_path_within_project}")
+
+            ic(current_user, "used Books DELETE.")  # IC logging to logger.txt
             return {'message': 'Book deleted successfully'}
         else:
             return {'message': 'Book not found'}, 404
@@ -424,7 +488,7 @@ class CustomerResource(Resource):
             if customer:
                 user = User.query.filter_by(CustomerID=customer.Id).first()
                 username = user.Username if user else None
-                isAdmin = user.is_admin if user else None # Get user's admin status and username else set them to None (for debug)
+                isAdmin = user.is_admin if user else None
                 return {'Id': customer.Id, 'Name': customer.Name, 'City': customer.City, 'Age': customer.Age, 'Username': username, 'is_admin': isAdmin}
             else:
                 return {'message': 'Customer not found'}, 404
@@ -480,10 +544,12 @@ class CustomerResource(Resource):
             return {'message': f'Error updating customer: {str(e)}'}, 500
 
 
-    # delete customer and related user including loans
+    # delete customer and related user including loans (Customer ID + User ID + his existing Loans)
     @jwt_required()
     def delete(self, customer_id):
         current_user = get_jwt_identity()
+        if not is_admin(current_user):
+            return {'message': 'Only admins can delete customers'}, 403
         customer = db.session.get(Customer, customer_id)
 
         if customer:
@@ -689,6 +755,30 @@ class LoanResource(Resource):
         
 # Add LoanResource to the API
 api.add_resource(LoanResource, '/loans', '/loans/<int:loan_id>')
+
+# ======================================
+
+
+# =========== Upload Image ============
+
+# Upload Image Resource
+class UploadImageResource(Resource):
+    @jwt_required()
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('image', type = werkzeug.datastructures.FileStorage, location='files')
+        args = parser.parse_args()
+
+        if args['image'] is not None:
+            image_file = args['image']
+            timestamp = datetime.now().strftime("%d%m%y_%H%M%S")
+            image_path = f'uploads/img/image_{timestamp}_{secure_filename(image_file.filename)}'
+            image_file.save(image_path)
+            return {'image_path': image_path}, 200
+
+        return {'image_path': None}, 200  # No image provided, return None
+
+api.add_resource(UploadImageResource, '/upload_image')
 
 # ======================================
 
