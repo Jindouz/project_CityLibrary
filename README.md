@@ -11,11 +11,11 @@
 9. [HTML Pages](#html-pages)
 10. [Author](#author)
 
-## Introduction {#introduction}
+## Introduction <a name="introduction"></a>
 
 Night City Library is a web-based Loan Management System that enables users and admins to manage book loans. The application is developed using Python with Flask_RESTful and Flask_SQLAlchemy for the backend and HTML, CSS (Bootstrap), and JavaScript (with Axios, Toastify) for the frontend.
 
-## How to Run {#how-to-run}
+## How to Run <a name="how-to-run"></a>
 
 1. Clone the repository:
 
@@ -44,7 +44,7 @@ Night City Library is a web-based Loan Management System that enables users and 
     ```
 
 
-## Features {#features}
+## Features <a name="features"></a>
 
 - **User Authentication**: Users can log in to the system (JWT Protected, 2 Hours Session Token), and admins have access to additional features (full CRUD in their own menu). 
 
@@ -64,14 +64,14 @@ Night City Library is a web-based Loan Management System that enables users and 
 
 - **Toastify Notifications**: Toastify will notify the user for most actions made on each HTML page, including welcome messages, errors and access restrictions.
 
-## Project Structure {#project-structure}
+## Project Structure <a name="project-structure"></a>
 
 - **backend/app.py**: The main Python file containing the Flask application, API routes, and database interactions.
 - **frontend folder**: Contains HTML files for various pages such as login, register, menu, and individual pages for managing loans, customers, and books.
 - **uploads/img**: Folder for storing uploaded images.
 - **logger.txt**: Log file for storing ICECREAM logs.
 
-## Python Packages {#python-packages}
+## Python Packages <a name="python-packages"></a>
 
 - Flask
 - Flask-RESTful
@@ -81,7 +81,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 - Icecream
 - Werkzeug
 
-## API Endpoints {#api-endpoints}
+## API Endpoints <a name="api-endpoints"></a>
 - **User (and Customer) Registration: /register** (POST)
 - **User Login: /login** (POST)
 - **User Details: /user** (GET), **/user/<user_id>** (PUT, DELETE)
@@ -93,13 +93,13 @@ Night City Library is a web-based Loan Management System that enables users and 
 -  
 - **Upload Image: /upload_image** (POST)
 
-## File Uploads {#file-uploads}
+## File Uploads <a name="file-uploads"></a>
 - Upload book images (10MB max, restricted to JPG and PNG file types) when adding books. (saved to the backend, deleted when deleting associated book)
 
-## Icecream Logger {#icecream-logger}
+## Icecream Logger <a name="icecream-logger"></a>
 - ICECREAM is used for logging. Logs are written to the logger.txt file.
 
-## HTML Pages {#html-pages}
+## HTML Pages <a name="html-pages"></a>
 - **login.html:** User login page.  
 - **register.html:** User registration page.  
 - **index.html:** Main loan page based on logged in user.  
@@ -108,5 +108,5 @@ Night City Library is a web-based Loan Management System that enables users and 
 - **customers.html:** Customer management page for admins.  
 - **books.html:** Book management page for admins.  
 
-## Author {#author}
+## Author <a name="author"></a>
 This project was created by Maor S.
