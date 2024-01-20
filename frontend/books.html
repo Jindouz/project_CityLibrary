@@ -364,6 +364,7 @@
                             console.log('Book added successfully:', response.data);
                             // Reload books after adding a new one
                             getBooks();
+                            clearFields();
                         })
                         .catch(error => {
                             // If the request returns a 403, redirect to login.html

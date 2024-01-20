@@ -22,7 +22,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=120)
 bcrypt = Bcrypt(app)
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # Uploads set to max 10 MB
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'} # Allowed image extensions
 
 # =============== SQL Models ===============
 
@@ -342,9 +342,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # =====================================
-
-
-
 
 
 # =============== Books Resource ===============

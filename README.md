@@ -20,7 +20,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 1. Clone the repository:
 
    ```
-   git clone https://github.com/jindouz/night-city-library.git
+   git clone https://github.com/Jindouz/project_CityLibrary.git
    ```
 
 2. Start Virtual Environment:
@@ -39,6 +39,8 @@ Night City Library is a web-based Loan Management System that enables users and 
     cd backend
     python app.py
     The application will be accessible at http://127.0.0.1:5000 as default. (or whichever address your Flask runs on)
+
+    The default page "index.html" will redirect the user to the login page to login/register first before allowing access.
     ```
 
 
@@ -48,7 +50,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 
 - **Login Required**: The app will redirect the user to login or register a new account if he tries to access restricted pages. 
 
-- **Loan Management**: Users can loan books, view current loans, and return loans and if a loan is late it is highlighted for them. 
+- **Loan Management**: Users can loan available books, view current loans, and return loans and if a loan is late it is highlighted for them. 
 
 - **Customer and Book Management**: Admins can manage customers, books and loans.
 
@@ -80,7 +82,7 @@ Night City Library is a web-based Loan Management System that enables users and 
 - Werkzeug
 
 ## API Endpoints {#api-endpoints}
-- **User Registration: /register** (POST)
+- **User (and Customer) Registration: /register** (POST)
 - **User Login: /login** (POST)
 - **User Details: /user** (GET), **/user/<user_id>** (PUT, DELETE)
 - **User Loans: /user/loans** (GET), **/user/loans/<loan_id>** (POST, DELETE)  
