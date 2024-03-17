@@ -356,7 +356,7 @@ book_parser.add_argument('img', type=werkzeug.datastructures.FileStorage, locati
 
 # Books CRUD
 class BookResource(Resource):
-    @jwt_required()
+    # @jwt_required()
     def get(self, book_id=None):
         current_user = get_jwt_identity()
         if book_id:
