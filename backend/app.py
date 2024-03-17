@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 import random
 from flask import Flask, current_app, jsonify, render_template, request, send_file, send_from_directory
+from flask_cors import CORS
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -12,6 +13,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__) 
 api = Api(app) 
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///library.db'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:SECRET@localhost/library'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
