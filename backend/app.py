@@ -810,11 +810,11 @@ ic.configureOutput(outputFunction=write_to_file)
 # ======================================
 
 
-
+# Testing route
 @app.route('/random_array', methods=['GET'])
 def random_array():
-    array_length = random.randint(5, 10)  # Generate random array length between 5 and 10
-    random_array = [random.randint(1, 100) for _ in range(array_length)]  # Generate random numbers for the array
+    array_length = random.randint(5, 10) 
+    random_array = [random.randint(1, 100) for _ in range(array_length)] 
     return jsonify(random_array)
 
 
