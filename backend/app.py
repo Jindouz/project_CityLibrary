@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+import random
 from flask import Flask, current_app, jsonify, render_template, request, send_file, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
@@ -356,7 +357,7 @@ book_parser.add_argument('img', type=werkzeug.datastructures.FileStorage, locati
 
 # Books CRUD
 class BookResource(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self, book_id=None):
         current_user = get_jwt_identity()
         if book_id:
@@ -807,6 +808,12 @@ ic.configureOutput(outputFunction=write_to_file)
 # ======================================
 
 
+
+@app.route('/random_array', methods=['GET'])
+def random_array():
+    array_length = random.randint(5, 10)  # Generate random array length between 5 and 10
+    random_array = [random.randint(1, 100) for _ in range(array_length)]  # Generate random numbers for the array
+    return jsonify(random_array)
 
 
 if __name__ == '__main__':
